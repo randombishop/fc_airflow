@@ -42,7 +42,7 @@ with DAG(
     'embeddings',
     default_args=default_args,
     description='Calculate embeddings for casts sample',
-    schedule_interval='0 6 * * *',
+    schedule_interval='0 2 * * *',
     max_active_runs=1,
     catchup=True,
     dagrun_timeout=datetime.timedelta(hours=3),
