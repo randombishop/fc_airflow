@@ -21,7 +21,7 @@ with DAG(
     'check',
     default_args=default_args,
     description='liveness monitoring dag',
-    schedule_interval='*/10 * * * *',
+    schedule_interval='0 * * * *',
     max_active_runs=1,
     catchup=False,
     dagrun_timeout=timedelta(minutes=10),

@@ -19,7 +19,7 @@ def notebook(**kwargs):
     }
     task_name = 'embed'
     description = 'Airflow job executing embeddings notebook'
-    gcs_notebook = 'gs://us-central1-airflow1-f888e353-bucket/notebooks/embeddings.ipynb'
+    gcs_notebook = 'gs://dsart_nearline1/notebooks/embeddings.ipynb'
     instance_type = "n1-highcpu-32"
     container_image_uri = "gcr.io/deeplearning-platform-release/base-cpu:latest"
     kernel_spec = "python3"

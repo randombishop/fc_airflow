@@ -19,7 +19,7 @@ def notebook(**kwargs):
     }
     task_name = 'gambit'
     description = 'Airflow job executing gambit notebook'
-    gcs_notebook = 'gs://us-central1-airflow1-f888e353-bucket/notebooks/gambit.ipynb'
+    gcs_notebook = 'gs://dsart_nearline1/notebooks/gambit.ipynb'
     instance_type = "n1-standard-4"
     container_image_uri = "gcr.io/deeplearning-platform-release/base-cpu:latest"
     kernel_spec = "python3"
