@@ -83,7 +83,7 @@ with DAG(
     description='Run daily snapshots',
     schedule_interval='0 10 * * *',
     max_active_runs=1,
-    catchup=True,
+    catchup=False,
     dagrun_timeout=datetime.timedelta(hours=2)
 ) as dag:
 

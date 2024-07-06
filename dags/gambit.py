@@ -38,7 +38,7 @@ with DAG(
     description='Run Gambit model',
     schedule_interval='0 6 * * *',
     max_active_runs=1,
-    catchup=True,
+    catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=30),
 ) as dag:
 

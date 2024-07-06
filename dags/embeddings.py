@@ -38,7 +38,7 @@ with DAG(
     description='Calculate embeddings for casts sample',
     schedule_interval='0 2 * * *',
     max_active_runs=1,
-    catchup=True,
+    catchup=False,
     dagrun_timeout=datetime.timedelta(hours=3),
 ) as dag:
 

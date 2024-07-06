@@ -72,7 +72,7 @@ with DAG(
     description='Run daily data aggregations on PG database',
     schedule_interval='0 4 * * *',
     max_active_runs=1,
-    catchup=True,
+    catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
 ) as dag:
 
