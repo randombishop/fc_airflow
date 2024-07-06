@@ -39,7 +39,7 @@ with DAG(
     schedule_interval='0 6 * * *',
     max_active_runs=1,
     catchup=True,
-    dagrun_timeout=datetime.timedelta(minutes=20),
+    dagrun_timeout=datetime.timedelta(minutes=30),
 ) as dag:
 
     notebook_task = PythonOperator(
