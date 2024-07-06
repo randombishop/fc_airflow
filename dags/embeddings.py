@@ -14,14 +14,8 @@ from utils import exec_notebook
 
 def notebook(**kwargs):
     ds = kwargs['ds']
-    sample_size = '100000'
     params = {
-        "sample_day": ds,
-        "sample_size": sample_size,
-        'db_host': os.environ['PG_HOST'],
-        'db_database': os.environ['PG_REPLICATOR'],
-        'db_user': os.environ['PG_USERNAME'],
-        'db_password': os.environ['PG_PASSWORD']
+        "sample_day": ds
     }
     task_name = 'embed'
     description = 'Airflow job executing embeddings notebook'

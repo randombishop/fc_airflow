@@ -20,7 +20,7 @@ INSERT INTO ds.daily_casts (day, num_cast, num_fid) (
 """
 
 SQL_DAILY_LINKS = """
-INSERT INTO ds.daily_links (day, fid, from_add, from_del, to_add, to_del) (
+INSERT INTO ds.daily_links (day, fid, link_from_add, link_from_del, link_to_add, link_to_del) (
 
 	WITH msg AS (
 		SELECT timestamp::timestamp::date as day,
