@@ -15,7 +15,7 @@ from utils import exec_notebook
 def notebook1(**kwargs):
     ds = kwargs['ds']
     params = {
-        "day": ds
+        "sample_day": ds
     }
     task_name = 'dataset1'
     description = 'Airflow job executing dataset1 notebook'
