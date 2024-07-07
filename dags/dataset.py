@@ -38,7 +38,7 @@ with DAG(
     description='Prepare ML datasets',
     schedule_interval='0 12 * * *',
     max_active_runs=1,
-    catchup=False,
+    catchup=True,
     dagrun_timeout=datetime.timedelta(minutes=30),
 ) as dag:
 
