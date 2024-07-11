@@ -2,10 +2,13 @@ import airflow
 import datetime
 import os
 import sys
+import pandas
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.hooks.postgres_hook import PostgresHook
+
+
 
 
 # Import local utils
@@ -39,6 +42,18 @@ def notebook_bird(**kwargs):
     container_image_uri = "gcr.io/deeplearning-platform-release/base-cpu:latest"
     kernel_spec = "python3"
     exec_notebook(task_name, description, gcs_notebook, instance_type, container_image_uri, kernel_spec, params)
+
+def csv_to_postgres(**kwargs):
+    pg_hook = PostgresHook(postgres_conn_id='pg_replicator')
+    df = pandas.read_csv('/tmp/bird.csv', lineterminator='\n')
+    print('df', len(df))
+    res = df.to_sql(name='bird1', 
+           con=pg_hook.get_sqlalchemy_engine(),
+           schema='ds', 
+           if_exists='append', 
+           index=False, 
+           chunksize=256)
+    print('res', res)
 
 
 default_args = {
@@ -76,10 +91,10 @@ with DAG(
         filename='/tmp/bird.csv'
     )
 
-    task_bird_pg = PostgresOperator(
+    task_bird_pg = PythonOperator(
         task_id='bird_pg',
-        postgres_conn_id='pg_replicator',
-        sql="\copy ds.bird1 FROM '/tmp/bird.csv' DELIMITER ',' CSV HEADER"
+        python_callable=csv_to_postgres,
+        provide_context=True
     )
 
     task1 >> task_bird >> task_tmp_file >> task_bird_pg
