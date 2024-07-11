@@ -72,7 +72,7 @@ with DAG(
     task_tmp_file = GCSToLocalFilesystemOperator(
         task_id='tmp_file',
         bucket='dsart_nearline1',
-        object_name='dsart_nearline1/pipelines/bird1/{{ ds }}.csv',
+        object_name='pipelines/bird1/{{ ds }}.csv',
         filename='/tmp/bird.csv'
     )
 
