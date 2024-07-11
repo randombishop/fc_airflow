@@ -46,14 +46,14 @@ def notebook_bird(**kwargs):
 def csv_to_postgres(**kwargs):
     pg_hook = PostgresHook(postgres_conn_id='pg_replicator')
     df = pandas.read_csv('/tmp/bird.csv', lineterminator='\n')
-    print('df', len(df))
+    print('CSV rows', len(df))
     res = df.to_sql(name='bird1', 
            con=pg_hook.get_sqlalchemy_engine(),
            schema='ds', 
            if_exists='append', 
            index=False, 
            chunksize=256)
-    print('res', res)
+    print('Inserted rows', res)
 
 
 default_args = {
