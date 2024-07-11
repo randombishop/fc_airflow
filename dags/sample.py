@@ -1,7 +1,8 @@
 import datetime
 import airflow
 from airflow import DAG
-from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
+from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 
 SQL_SAMPLE_100K = """
