@@ -69,5 +69,12 @@ with DAG(
         provide_context=True
     )
 
-    task1 >> task_bird
+    task_tmp_file = GCSToLocalFilesystemOperator(
+        task_id='tmp_file',
+        bucket='dsart_nearline1',
+        object_name='dsart_nearline1/pipelines/bird1/{{ ds }}.csv',
+        filename='/tmp/bird.csv'
+    )
+
+    task1 >> task_bird >> task_tmp_file
 
