@@ -76,5 +76,11 @@ with DAG(
         filename='/tmp/bird.csv'
     )
 
-    task1 >> task_bird >> task_tmp_file
+    task_bird_pg = PostgresOperator(
+        task_id='bird_pg',
+        postgres_conn_id='pg_replicator',
+        sql="COPY ds.bird1 FROM '/tmp/bird.csv' DELIMITER ',' CSV HEADER"
+    )
+
+    task1 >> task_bird >> task_tmp_file >> task_bird_pg
 
