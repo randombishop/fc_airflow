@@ -4,7 +4,8 @@ import os
 import sys
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.providers.google.cloud.transfers.gcs_to_postgres import GoogleCloudStorageToPostgresOperator
+from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 
 # Import local utils
