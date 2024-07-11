@@ -44,8 +44,10 @@ def notebook_bird(**kwargs):
     exec_notebook(task_name, description, gcs_notebook, instance_type, container_image_uri, kernel_spec, params)
 
 def csv_to_postgres(**kwargs):
+    ds = kwargs['ds']
+    tmp_file = '/tmp/' + ds + '_bird.csv'
     pg_hook = PostgresHook(postgres_conn_id='pg_replicator')
-    df = pandas.read_csv('/tmp/bird.csv', lineterminator='\n')
+    df = pandas.read_csv(tmp_file, lineterminator='\n')
     print('CSV rows', len(df))
     res = df.to_sql(name='bird1', 
            con=pg_hook.get_sqlalchemy_engine(),
@@ -54,7 +56,8 @@ def csv_to_postgres(**kwargs):
            index=False, 
            chunksize=256)
     print('Inserted rows', res)
-
+    os.remove(tmp_file)
+    print('Removed file', tmp_file)
 
 default_args = {
     'start_date': airflow.utils.dates.days_ago(35),
@@ -88,7 +91,7 @@ with DAG(
         task_id='tmp_file',
         bucket='dsart_nearline1',
         object_name='pipelines/bird1/{{ ds }}.csv',
-        filename='/tmp/bird.csv'
+        filename='/tmp/{{ ds }}_bird.csv'
     )
 
     task_bird_pg = PythonOperator(
