@@ -7,7 +7,7 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
 from airflow.hooks.postgres_hook import PostgresHook
-
+from airflow.operators.postgres_operator import PostgresOperator
 
 
 
@@ -68,7 +68,7 @@ default_args = {
 with DAG(
     'dataset',
     default_args=default_args,
-    description='Prepare ML datasets',
+    description='Create casts dataset',
     schedule_interval='0 12 * * *',
     max_active_runs=1,
     catchup=True,
@@ -100,5 +100,11 @@ with DAG(
         provide_context=True
     )
 
-    task1 >> task_bird >> task_tmp_file >> task_bird_pg
+    task_bird_stats = PostgresOperator(
+		task_id='bird_stats',
+		postgres_conn_id='pg_replicator',
+		sql='sql/bird1_stats.sql'
+	)    
+
+    task1 >> task_bird >> task_tmp_file >> task_bird_pg >> task_bird_stats
 
