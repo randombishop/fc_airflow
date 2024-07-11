@@ -25,6 +25,19 @@ def notebook1(**kwargs):
     kernel_spec = "python3"
     exec_notebook(task_name, description, gcs_notebook, instance_type, container_image_uri, kernel_spec, params)
 
+def notebook_bird(**kwargs):
+    ds = kwargs['ds']
+    params = {
+        "sample_day": ds
+    }
+    task_name = 'bird'
+    description = 'Airflow job executing bird notebook'
+    gcs_notebook = 'gs://dsart_nearline1/notebooks/bird.ipynb'
+    instance_type = "n1-standard-4"
+    container_image_uri = "gcr.io/deeplearning-platform-release/base-cpu:latest"
+    kernel_spec = "python3"
+    exec_notebook(task_name, description, gcs_notebook, instance_type, container_image_uri, kernel_spec, params)
+
 
 default_args = {
     'start_date': airflow.utils.dates.days_ago(35),
@@ -48,5 +61,11 @@ with DAG(
         provide_context=True
     )
 
-    task1
+    task_bird = PythonOperator(
+        task_id='bird',
+        python_callable=notebook_bird,
+        provide_context=True
+    )
+
+    task1 >> task_bird
 
