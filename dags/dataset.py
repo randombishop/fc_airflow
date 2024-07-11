@@ -101,10 +101,10 @@ with DAG(
     )
 
     task_bird_stats = PostgresOperator(
-		task_id='bird_stats',
-		postgres_conn_id='pg_replicator',
-		sql='sql/bird1_stats.sql'
-	)    
+        task_id='bird_stats',
+        postgres_conn_id='pg_replicator',
+        sql='sql/bird1_stats.sql'
+    )    
 
     task1 >> task_bird >> task_tmp_file >> task_bird_pg >> task_bird_stats
 
