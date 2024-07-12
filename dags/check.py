@@ -4,13 +4,6 @@ from airflow.operators.sql import SQLCheckOperator
 from datetime import timedelta
 
 
-SQL_NEW_CASTS = """
-SELECT (count(*)>10) as check_new_casts 
-FROM public.casts
-WHERE timestamp>'{{ ts }}'
-"""
-
-
 default_args = {
     'start_date': airflow.utils.dates.days_ago(0),
     'retries': 1,
@@ -30,7 +23,7 @@ with DAG(
     task1 = SQLCheckOperator(
         task_id='casts',
         conn_id='pg_replicator',
-		sql=SQL_NEW_CASTS)
+		sql='sql/new_casts.sql')
     
     task1
 
