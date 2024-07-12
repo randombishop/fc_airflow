@@ -37,6 +37,8 @@ def csv_to_postgres(**kwargs):
     df = pandas.DataFrame(json_data)
     print('rows', len(df))
     df['day'] = ds
+    df['title'] = df['title'].astype(str)
+    df['summary'] = df['summary'].astype(str)
     df['links'] = df['links'].astype(str)
     columns = ['day', 'key', 'title', 'summary', 'links']
     df = df[columns]
