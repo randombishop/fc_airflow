@@ -50,7 +50,7 @@ def csv_to_postgres(**kwargs):
     print('Removed file', tmp_file)
 
 default_args = {
-    'start_date': airflow.utils.dates.days_ago(35),
+    'start_date': airflow.utils.dates.days_ago(10),
     'retries': 1,
     'retry_delay': datetime.timedelta(hours=1)
 }
