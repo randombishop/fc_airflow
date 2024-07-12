@@ -4,6 +4,7 @@ import os
 import sys
 import pandas
 import json
+import sqlalchemy
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
@@ -39,7 +40,6 @@ def csv_to_postgres(**kwargs):
     df['day'] = ds
     df['title'] = df['title'].astype(str)
     df['summary'] = df['summary'].astype(str)
-    df['links'] = df['links'].astype(str)
     columns = ['day', 'key', 'title', 'summary', 'links']
     df = df[columns]
     res = df.to_sql(name='daily_digest', 
@@ -47,7 +47,8 @@ def csv_to_postgres(**kwargs):
            schema='ds', 
            if_exists='append', 
            index=False, 
-           chunksize=256)
+           chunksize=256,
+           dtype={'links': sqlalchemy.types.JSON})
     print('Inserted rows', res)
     os.remove(tmp_file)
     print('Removed file', tmp_file)
