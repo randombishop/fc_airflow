@@ -37,9 +37,9 @@ def csv_to_postgres(**kwargs):
     df = pandas.DataFrame(json_data)
     print('rows', len(df))
     df['day'] = ds
+    df['links'] = df['links'].astype(str)
     columns = ['day', 'key', 'title', 'summary', 'links']
     df = df[columns]
-    print(df)
     res = df.to_sql(name='daily_digest', 
            con=pg_hook.get_sqlalchemy_engine(),
            schema='ds', 
