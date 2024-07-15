@@ -22,7 +22,8 @@ with DAG(
     t1 = SSHOperator(
         task_id='t1',
         ssh_conn_id='ssh_caster',
-		command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_misc"')
+		command='bun fc_caster/app/index.ts digest "{{ ds }}" "c_misc"',
+        get_pty=True)
     
     t1
     
