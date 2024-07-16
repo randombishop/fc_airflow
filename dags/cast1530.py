@@ -15,7 +15,7 @@ with DAG(
     default_args=default_args,
     schedule_interval='30 15 * * *',
     max_active_runs=1,
-    catchup=False,
+    catchup=True,
     dagrun_timeout=timedelta(minutes=30),
 ) as dag:
 
