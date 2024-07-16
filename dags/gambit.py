@@ -43,7 +43,7 @@ with DAG(
 ) as dag:
 
     notebook_task = PythonOperator(
-        task_id='notebook',
+        task_id='gambit_notebook',
         python_callable=notebook,
         provide_context=True
     )

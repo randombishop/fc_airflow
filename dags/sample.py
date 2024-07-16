@@ -33,7 +33,7 @@ with DAG(
 ) as dag:
 
     sample100k_task = PostgresToGCSOperator(
-        task_id="100k",
+        task_id="sample_100k",
         postgres_conn_id='pg_replicator',
         sql=SQL_SAMPLE_100K,
         bucket='dsart_nearline1',

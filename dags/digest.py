@@ -70,20 +70,20 @@ with DAG(
 ) as dag:
 
     task_vertex = PythonOperator(
-        task_id='vertex',
+        task_id='digest_vertex',
         python_callable=notebook_digest,
         provide_context=True
     )
 
     task_tmp = GCSToLocalFilesystemOperator(
-        task_id='tmp',
+        task_id='digest_tmp',
         bucket='dsart_nearline1',
         object_name='pipelines/digest/{{ ds }}.json',
         filename='/tmp/{{ ds }}_digest.json'
     )
 
     task_pg = PythonOperator(
-        task_id='pg',
+        task_id='digest_pg',
         python_callable=csv_to_postgres,
         provide_context=True
     )

@@ -20,7 +20,7 @@ with DAG(
 ) as dag:
 
     t1 = SSHOperator(
-        task_id='t1',
+        task_id='cast1500_1',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_misc"',
         cmd_timeout=900,
