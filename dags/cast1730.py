@@ -34,7 +34,7 @@ with DAG(
         get_pty=True)
     
     t3 = SSHOperator(
-        task_id='cast1730_2',
+        task_id='cast1730_3',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_nature"',
         cmd_timeout=900,
