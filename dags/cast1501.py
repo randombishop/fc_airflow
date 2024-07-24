@@ -11,22 +11,22 @@ default_args = {
 }
 
 with DAG(
-    'cast1500',
+    'cast1501',
     default_args=default_args,
-    schedule_interval='0 15 * * *',
+    schedule_interval='01 15 * * *',
     max_active_runs=1,
     catchup=True,
     dagrun_timeout=timedelta(minutes=30),
 ) as dag:
 
-    t1 = SSHOperator(
-        task_id='cast1500_1',
+    cast_misc = SSHOperator(
+        task_id='cast_misc',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_misc"',
         cmd_timeout=900,
         get_pty=True)
     
-    t1
+    cast_misc
     
     
 

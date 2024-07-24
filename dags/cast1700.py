@@ -19,21 +19,21 @@ with DAG(
     dagrun_timeout=timedelta(minutes=30),
 ) as dag:
 
-    t1 = SSHOperator(
-        task_id='cast1700_1',
+    cast_business = SSHOperator(
+        task_id='cast_business',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_business"',
         cmd_timeout=900,
         get_pty=True)
     
-    t2 = SSHOperator(
-        task_id='cast1700_2',
+    cast_tech_science = SSHOperator(
+        task_id='cast_tech_science',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_tech_science"',
         cmd_timeout=900,
         get_pty=True)
     
-    t1 >> t2
+    cast_business >> cast_tech_science
     
     
 

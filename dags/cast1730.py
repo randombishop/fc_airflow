@@ -19,28 +19,28 @@ with DAG(
     dagrun_timeout=timedelta(minutes=30),
 ) as dag:
 
-    t1 = SSHOperator(
-        task_id='cast1730_1',
+    cast_money = SSHOperator(
+        task_id='cast_money',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_money"',
         cmd_timeout=900,
         get_pty=True)
     
-    t2 = SSHOperator(
-        task_id='cast1730_2',
+    cast_sports = SSHOperator(
+        task_id='cast_sports',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_sports"',
         cmd_timeout=900,
         get_pty=True)
     
-    t3 = SSHOperator(
-        task_id='cast1730_3',
+    cast_nature = SSHOperator(
+        task_id='cast_nature',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_nature"',
         cmd_timeout=900,
         get_pty=True)
     
-    t1 >> t2 >> t3
+    cast_money >> cast_sports >> cast_nature
     
     
 

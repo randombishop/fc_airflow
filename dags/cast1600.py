@@ -19,14 +19,14 @@ with DAG(
     dagrun_timeout=timedelta(minutes=30),
 ) as dag:
 
-    t1 = SSHOperator(
-        task_id='cast1600_1',
+    cast_politics = SSHOperator(
+        task_id='cast_politics',
         ssh_conn_id='ssh_caster',
         command='/home/na/.bun/bin/bun fc_caster/app/index.ts digest "{{ ds }}" "c_politics"',
         cmd_timeout=900,
         get_pty=True)
     
-    t1
+    cast_politics
     
     
 
