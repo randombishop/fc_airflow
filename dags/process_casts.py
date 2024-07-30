@@ -26,7 +26,7 @@ with DAG(
         postgres_conn_id='pg_replicator',
         sql='sql/snapshot_casts.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/process_cases/casts/{{ (execution_date - macros.timedelta(hours=9)).strftime("%Y-%m-%d-%H") }}_casts.csv',
+        filename='pipelines/process_casts/casts/{{ (execution_date - macros.timedelta(hours=9)).strftime("%Y-%m-%d-%H") }}_casts.csv',
         export_format="csv",
         gzip=False
     )
