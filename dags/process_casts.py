@@ -2,6 +2,7 @@ import datetime
 import airflow
 from airflow import DAG
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
 
 default_args = {
@@ -31,4 +32,11 @@ with DAG(
         gzip=False
     )
 
-    snapshot_casts
+    embeddings = SSHOperator(
+        task_id='embeddings',
+        ssh_conn_id='ssh_worker',
+        command='/home/na/embeddings.sh "{{ (execution_date - macros.timedelta(hours=9)).strftime("%Y-%m-%d-%H") }}"',
+        cmd_timeout=600,
+        get_pty=True)
+
+    snapshot_casts >> embeddings 
