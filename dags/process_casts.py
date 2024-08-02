@@ -27,7 +27,7 @@ with DAG(
         postgres_conn_id='pg_replicator',
         sql='sql/snapshot_casts.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/process_casts/casts/{{ (execution_date - macros.timedelta(hours=9)).strftime("%Y-%m-%d-%H") }}_casts.csv',
+        filename='pipelines/process_casts/casts/{{ execution_date.strftime("%Y-%m-%d-%H") }}_casts.csv',
         export_format="csv",
         gzip=False
     )
@@ -35,7 +35,7 @@ with DAG(
     embeddings = SSHOperator(
         task_id='embeddings',
         ssh_conn_id='ssh_worker',
-        command='/home/na/embeddings.sh "{{ (execution_date - macros.timedelta(hours=9)).strftime("%Y-%m-%d-%H") }}"',
+        command='/home/na/embeddings.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
         cmd_timeout=600,
         get_pty=True)
 

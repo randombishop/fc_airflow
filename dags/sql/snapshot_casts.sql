@@ -25,6 +25,6 @@ SELECT encode(hash, 'hex') as hash,
 	
 FROM public.messages
 WHERE 
-	timestamp>'{{ execution_date - macros.timedelta(hours=9) }}'
-	AND timestamp<'{{ execution_date - macros.timedelta(hours=8) }}'
+	timestamp>'{{ execution_date }}'
+	AND timestamp<'{{ execution_date + macros.timedelta(hours=1) }}'
 	AND type=1
