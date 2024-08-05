@@ -1,6 +1,5 @@
 WITH cast_data AS (
     SELECT 
-        id,
         timestamp::date AS day,
         EXTRACT(HOUR FROM timestamp) AS hour,
         encode(casts.hash, 'hex') AS cast_hash,
