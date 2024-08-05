@@ -34,8 +34,8 @@ with DAG(
 
     filename1 = 'pipelines/etl_engagement/snapshot_1h/{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d-%H") }}_eng01.csv'
 
-    etleng_1h = PostgresToGCSOperator(
-        task_id="etleng_1h",
+    etleng_sql1 = PostgresToGCSOperator(
+        task_id="etleng_sql_01",
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_1h.sql',
         bucket='dsart_nearline1',
@@ -45,10 +45,10 @@ with DAG(
     )
 
     etleng_bq1 = GCSToBigQueryOperator(
-        task_id='etleng_bq1',
+        task_id='etleng_bq_01',
         bucket='dsart_nearline1',
         source_objects=[filename1],
-        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.engagement1h',
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.engagement01h',
         time_partitioning={
             'type': 'DAY',
             'field': 'day', 
@@ -61,8 +61,8 @@ with DAG(
 
     filename12 = 'pipelines/etl_engagement/snapshot_12h/{{ (execution_date - macros.timedelta(hours=12)).strftime("%Y-%m-%d-%H") }}_eng12.csv'
 
-    etleng_12h = PostgresToGCSOperator(
-        task_id="etleng_12h",
+    etleng_sql12 = PostgresToGCSOperator(
+        task_id="etleng_sql_12",
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_12h.sql',
         bucket='dsart_nearline1',
@@ -71,10 +71,25 @@ with DAG(
         gzip=False
     )
 
+    etleng_bq12 = GCSToBigQueryOperator(
+        task_id='etleng_bq_12',
+        bucket='dsart_nearline1',
+        source_objects=[filename12],
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.engagement12h',
+        time_partitioning={
+            'type': 'DAY',
+            'field': 'day', 
+        },
+        write_disposition='WRITE_APPEND',
+        skip_leading_rows=1,
+        source_format='CSV',
+        schema_fields=bq_fields
+    )
+
     filename36 = 'pipelines/etl_engagement/snapshot_36h/{{  (execution_date - macros.timedelta(hours=36)).strftime("%Y-%m-%d-%H") }}_eng36.csv'
 
-    etleng_36h = PostgresToGCSOperator(
-        task_id="etleng_36h",
+    etleng_sql36 = PostgresToGCSOperator(
+        task_id="etleng_sql_36",
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_36h.sql',
         bucket='dsart_nearline1',
@@ -83,9 +98,24 @@ with DAG(
         gzip=False
     )
 
-    etleng_1h >> etleng_bq1
-    etleng_12h 
-    etleng_36h
+    etleng_bq36 = GCSToBigQueryOperator(
+        task_id='etleng_bq_36',
+        bucket='dsart_nearline1',
+        source_objects=[filename36],
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.engagement36h',
+        time_partitioning={
+            'type': 'DAY',
+            'field': 'day', 
+        },
+        write_disposition='WRITE_APPEND',
+        skip_leading_rows=1,
+        source_format='CSV',
+        schema_fields=bq_fields
+    )
+
+    etleng_sql1 >> etleng_bq1
+    etleng_sql12 >> etleng_bq12
+    etleng_sql36 >> etleng_bq36
 
 
 
