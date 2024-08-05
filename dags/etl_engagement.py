@@ -28,7 +28,7 @@ with DAG(
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_1h.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/etl_engagement/snapshot_1h/{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d-%H") }}.csv',
+        filename='pipelines/etl_engagement/snapshot_1h/{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d-%H") }}_eng01.csv',
         export_format="csv",
         gzip=False
     )
@@ -38,7 +38,7 @@ with DAG(
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_12h.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/etl_engagement/snapshot_12h/{{ (execution_date - macros.timedelta(hours=12)).strftime("%Y-%m-%d-%H") }}.csv',
+        filename='pipelines/etl_engagement/snapshot_12h/{{ (execution_date - macros.timedelta(hours=12)).strftime("%Y-%m-%d-%H") }}_eng12.csv',
         export_format="csv",
         gzip=False
     )
@@ -48,7 +48,7 @@ with DAG(
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_36h.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/etl_engagement/snapshot_36h/{{  (execution_date - macros.timedelta(hours=36)).strftime("%Y-%m-%d-%H") }}.csv',
+        filename='pipelines/etl_engagement/snapshot_36h/{{  (execution_date - macros.timedelta(hours=36)).strftime("%Y-%m-%d-%H") }}_eng36.csv',
         export_format="csv",
         gzip=False
     )
