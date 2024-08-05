@@ -19,7 +19,7 @@ with DAG(
     description='Hourly engagement stats',
     schedule_interval='0 * * * *',
     max_active_runs=1,
-    catchup=False,
+    catchup=True,
     dagrun_timeout=datetime.timedelta(hours=1)
 ) as dag:
 
