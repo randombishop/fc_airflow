@@ -25,4 +25,4 @@ FROM public.casts
 WHERE 
 timestamp>'{{ execution_date - macros.timedelta(hours=1) }}'
 AND timestamp<'{{ execution_date }}'
-AND (deleted_at is not NULL or num_like>0 or num_recast>0 or num_reply>0) deleted_at is NULL
+AND (deleted_at is not NULL or num_like>0 or num_recast>0 or num_reply>0) 
