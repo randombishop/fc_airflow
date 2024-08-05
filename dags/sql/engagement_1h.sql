@@ -1,28 +1,29 @@
-SELECT id, 
-	
-	timestamp::date AS day,
-    EXTRACT(HOUR FROM timestamp) AS hour,
-	encode(casts.hash, 'hex') as cast_hash,
-	deleted_at,
-	
-	(select count(distinct fid) from messages 
-	 where body->'target'->>'hash'=('0x'||encode(casts.hash, 'hex'))
-	 and body->>'type'='1'
-     and timestamp<(casts.timestamp+INTERVAL '1 hours')) as num_like,
+WITH cast_data AS (
+    SELECT 
+        id,
+        timestamp::date AS day,
+        EXTRACT(HOUR FROM timestamp) AS hour,
+        encode(casts.hash, 'hex') AS cast_hash,
+        deleted_at,
+        (SELECT count(distinct fid) FROM messages 
+         WHERE body->'target'->>'hash'=('0x'||encode(casts.hash, 'hex'))
+         AND body->>'type'='1'
+         AND timestamp < (casts.timestamp + INTERVAL '1 hours')) AS num_like,
+        (SELECT count(distinct fid) FROM messages 
+         WHERE body->'target'->>'hash'=('0x'||encode(casts.hash, 'hex'))
+         AND body->>'type'='2'
+         AND timestamp < (casts.timestamp + INTERVAL '1 hours')) AS num_recast,
+        (SELECT count(distinct fid) FROM messages 
+         WHERE body->'parent'->>'hash'=('0x'||encode(casts.hash, 'hex'))
+         AND type = 1
+         AND timestamp < (casts.timestamp + INTERVAL '1 hours')) AS num_reply
+    FROM public.casts
+    WHERE 
+        timestamp > '{{ execution_date - macros.timedelta(hours=1) }}'
+        AND timestamp < '{{ execution_date }}'
+)
 
-	(select count(distinct fid) from messages 
-	 where body->'target'->>'hash'=('0x'||encode(casts.hash, 'hex'))
-	 and body->>'type'='2'
-     and timestamp<(casts.timestamp+INTERVAL '1 hours')) as num_recast,
+SELECT *
+FROM cast_data
+WHERE (deleted_at IS NOT NULL) OR (num_like > 0) OR (num_recast > 0) OR (num_reply > 0);
 
-	(select count(distinct fid) from messages 
-	 where body->'parent'->>'hash'=('0x'||encode(casts.hash, 'hex'))
-	 and type=1
-     and timestamp<(casts.timestamp+INTERVAL '1 hours')) as num_reply
-	
-FROM public.casts
-
-WHERE 
-timestamp>'{{ execution_date - macros.timedelta(hours=1) }}'
-AND timestamp<'{{ execution_date }}'
-AND (deleted_at is not NULL or num_like>0 or num_recast>0 or num_reply>0) 
