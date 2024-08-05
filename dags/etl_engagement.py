@@ -2,6 +2,7 @@ import datetime
 import airflow
 from airflow import DAG
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
+from airflow.providers.google.cloud.operators.bigquery import GCSToBigQueryOperator
 
 
 
@@ -23,14 +24,31 @@ with DAG(
     dagrun_timeout=datetime.timedelta(hours=1)
 ) as dag:
 
+    filename1 = 'pipelines/etl_engagement/snapshot_1h/{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d-%H") }}_eng01.csv'
+
     etleng_1h = PostgresToGCSOperator(
         task_id="etleng_1h",
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_1h.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/etl_engagement/snapshot_1h/{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d-%H") }}_eng01.csv',
+        filename=filename1,
         export_format="csv",
         gzip=False
+    )
+
+    etleng_bq1 = GCSToBigQueryOperator(
+        task_id='etleng_bq1',
+        bucket='dsart_nearline1',
+        source_objects=[filename1],
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.engagement1h',
+        time_partitioning={
+            'type': 'DAY',
+            'field': 'day', 
+        },
+        write_disposition='WRITE_APPEND',
+        skip_leading_rows=1,
+        source_format='CSV',
+        autodetect=True
     )
 
     etleng_12h = PostgresToGCSOperator(
@@ -53,7 +71,9 @@ with DAG(
         gzip=False
     )
 
-    etleng_1h >> etleng_12h >> etleng_36h
+    etleng_1h >> etleng_bq1
+    etleng_12h 
+    etleng_36h
 
 
 
