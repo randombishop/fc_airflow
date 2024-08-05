@@ -5,7 +5,15 @@ from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToG
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 
 
-
+bq_fields = [
+    {'name': 'day', 'type': 'DATE', 'mode': 'REQUIRED'},
+    {'name': 'hour', 'type': 'INT64', 'mode': 'REQUIRED'},
+    {'name': 'cast_hash', 'type': 'STRING', 'mode': 'REQUIRED'},
+    {'name': 'deleted_at', 'type': 'TIMESTAMP', 'mode': 'NULLABLE'},
+    {'name': 'num_like', 'type': 'INT64', 'mode': 'NULLABLE'},
+    {'name': 'num_recast', 'type': 'INT64', 'mode': 'NULLABLE'},
+    {'name': 'num_reply', 'type': 'INT64', 'mode': 'NULLABLE'},
+]
 
 default_args = {
     'start_date': airflow.utils.dates.days_ago(75),
@@ -48,25 +56,29 @@ with DAG(
         write_disposition='WRITE_APPEND',
         skip_leading_rows=1,
         source_format='CSV',
-        autodetect=True
+        schema_fields=bq_fields
     )
+
+    filename12 = 'pipelines/etl_engagement/snapshot_12h/{{ (execution_date - macros.timedelta(hours=12)).strftime("%Y-%m-%d-%H") }}_eng12.csv'
 
     etleng_12h = PostgresToGCSOperator(
         task_id="etleng_12h",
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_12h.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/etl_engagement/snapshot_12h/{{ (execution_date - macros.timedelta(hours=12)).strftime("%Y-%m-%d-%H") }}_eng12.csv',
+        filename=filename12,
         export_format="csv",
         gzip=False
     )
+
+    filename36 = 'pipelines/etl_engagement/snapshot_36h/{{  (execution_date - macros.timedelta(hours=36)).strftime("%Y-%m-%d-%H") }}_eng36.csv'
 
     etleng_36h = PostgresToGCSOperator(
         task_id="etleng_36h",
         postgres_conn_id='pg_replicator',
         sql='sql/engagement_36h.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/etl_engagement/snapshot_36h/{{  (execution_date - macros.timedelta(hours=36)).strftime("%Y-%m-%d-%H") }}_eng36.csv',
+        filename=filename36,
         export_format="csv",
         gzip=False
     )
