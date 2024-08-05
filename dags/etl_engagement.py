@@ -7,12 +7,12 @@ from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQue
 
 bq_fields = [
     {'name': 'day', 'type': 'DATE', 'mode': 'REQUIRED'},
-    {'name': 'hour', 'type': 'INT64', 'mode': 'REQUIRED'},
+    {'name': 'hour', 'type': 'FLOAT64', 'mode': 'REQUIRED'},
     {'name': 'cast_hash', 'type': 'STRING', 'mode': 'REQUIRED'},
-    {'name': 'deleted_at', 'type': 'TIMESTAMP', 'mode': 'NULLABLE'},
-    {'name': 'num_like', 'type': 'INT64', 'mode': 'NULLABLE'},
-    {'name': 'num_recast', 'type': 'INT64', 'mode': 'NULLABLE'},
-    {'name': 'num_reply', 'type': 'INT64', 'mode': 'NULLABLE'},
+    {'name': 'deleted_at', 'type': 'FLOAT64', 'mode': 'NULLABLE'},
+    {'name': 'num_like', 'type': 'FLOAT64', 'mode': 'NULLABLE'},
+    {'name': 'num_recast', 'type': 'FLOAT64', 'mode': 'NULLABLE'},
+    {'name': 'num_reply', 'type': 'FLOAT64', 'mode': 'NULLABLE'},
 ]
 
 default_args = {
