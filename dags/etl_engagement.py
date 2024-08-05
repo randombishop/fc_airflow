@@ -2,7 +2,7 @@ import datetime
 import airflow
 from airflow import DAG
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
-from airflow.providers.google.cloud.operators.bigquery import GCSToBigQueryOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 
 
 
