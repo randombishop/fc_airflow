@@ -36,7 +36,14 @@ with DAG(
         task_id='embeddings',
         ssh_conn_id='ssh_worker',
         command='/home/na/embeddings.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-        cmd_timeout=600,
+        cmd_timeout=300,
+        get_pty=True)
+    
+    gambit = SSHOperator(
+        task_id='gambit',
+        ssh_conn_id='ssh_worker',
+        command='/home/na/gambit2.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+        cmd_timeout=120,
         get_pty=True)
 
-    snapshot_casts >> embeddings 
+    snapshot_casts >> embeddings >> gambit
