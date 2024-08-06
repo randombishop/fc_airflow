@@ -51,7 +51,7 @@ with DAG(
         postgres_conn_id='pg_replicator',
         sql='sql/user_stats.sql',
         bucket='dsart_nearline1',
-        filename='pipelines/process_casts/user_stats/{{ execution_date.strftime("%Y-%m-%d-%H") }}_users.csv',
+        filename='pipelines/process_casts/users/{{ execution_date.strftime("%Y-%m-%d-%H") }}_users.csv',
         export_format="csv",
         gzip=False
     )
