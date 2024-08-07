@@ -49,7 +49,7 @@ with DAG(
         bucket='dsart_nearline1',
         source_objects=[filename1],
         destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_engagement01h',
-        write_disposition='WRITE_APPEND',
+        write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
         schema_fields=bq_fields
@@ -90,7 +90,7 @@ with DAG(
         bucket='dsart_nearline1',
         source_objects=[filename12],
         destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_engagement12h',
-        write_disposition='WRITE_APPEND',
+        write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
         schema_fields=bq_fields
@@ -131,7 +131,7 @@ with DAG(
         bucket='dsart_nearline1',
         source_objects=[filename36],
         destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_engagement36h',
-        write_disposition='WRITE_APPEND',
+        write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
         schema_fields=bq_fields
