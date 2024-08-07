@@ -66,7 +66,8 @@ with DAG(
                         t.h01_recasts = CAST(s.num_recast as INT64),
                         t.h01_replies = CAST(s.num_reply as INT64)
                     FROM `deep-mark-425321-r7.dsart_farcaster.tmp_engagement01h` AS s
-                    WHERE t.day = s.day and t.hash = s.cast_hash
+                    WHERE t.day = '{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d") }}' 
+                    AND t.hash = s.cast_hash
                 """,
                 'useLegacySql': False,
             }
@@ -106,7 +107,8 @@ with DAG(
                         t.h12_recasts = CAST(s.num_recast as INT64),
                         t.h12_replies = CAST(s.num_reply as INT64)
                     FROM `deep-mark-425321-r7.dsart_farcaster.tmp_engagement12h` AS s
-                    WHERE t.day = s.day and t.hash = s.cast_hash
+                    WHERE t.day = '{{ (execution_date - macros.timedelta(hours=12)).strftime("%Y-%m-%d") }}' 
+                    AND t.hash = s.cast_hash
                 """,
                 'useLegacySql': False,
             }
@@ -146,7 +148,8 @@ with DAG(
                         t.h36_recasts = CAST(s.num_recast as INT64),
                         t.h36_replies = CAST(s.num_reply as INT64)
                     FROM `deep-mark-425321-r7.dsart_farcaster.tmp_engagement36h` AS s
-                    WHERE t.day = s.day and t.hash = s.cast_hash
+                    WHERE t.day = '{{  (execution_date - macros.timedelta(hours=36)).strftime("%Y-%m-%d") }}' 
+                    AND t.hash = s.cast_hash
                 """,
                 'useLegacySql': False,
             }
