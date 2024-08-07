@@ -43,7 +43,7 @@ with DAG(
         task_id='gambit',
         ssh_conn_id='ssh_worker',
         command='/home/na/gambit2.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-        cmd_timeout=120,
+        cmd_timeout=300,
         get_pty=True)
     
     user_stats = PostgresToGCSOperator(
@@ -56,8 +56,18 @@ with DAG(
         gzip=False
     )
 
+    join = SSHOperator(
+        task_id='join',
+        ssh_conn_id='ssh_worker',
+        command='/home/na/join1.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+        cmd_timeout=300,
+        get_pty=True)
+    
     snapshot_casts >> embeddings >> gambit
 
     user_stats
+
+    (gambit, user_stats) >> join
+
 
 
