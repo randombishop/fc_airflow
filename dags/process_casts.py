@@ -1,6 +1,7 @@
 import datetime
 import airflow
 from airflow import DAG
+from airflow.operators.sql import SQLCheckOperator
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
@@ -21,6 +22,13 @@ with DAG(
     catchup=True,
     dagrun_timeout=datetime.timedelta(hours=3)
 ) as dag:
+
+    check = SQLCheckOperator(
+        task_id='check',
+        conn_id='pg_replicator',
+		sql='sql/check_casts.sql')
+    
+    check
 
     snapshot_casts = PostgresToGCSOperator(
         task_id="snapshot_casts",
@@ -63,9 +71,11 @@ with DAG(
         cmd_timeout=300,
         get_pty=True)
     
-    snapshot_casts >> embeddings >> gambit
+    check 
+    
+    check >> snapshot_casts >> embeddings >> gambit
 
-    user_stats
+    check >> user_stats
 
     (gambit, user_stats) >> join
 
