@@ -5,6 +5,8 @@ from airflow.operators.sql import SQLCheckOperator
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.ssh.operators.ssh import SSHOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+
 
 
 default_args = {
@@ -91,13 +93,29 @@ with DAG(
         autodetect=True
     )
     
+    bird_update = BigQueryInsertJobOperator(
+        task_id='bird_update',
+        configuration={
+            'query': {
+                'query': """
+                    UPDATE `deep-mark-425321-r7.dsart_farcaster.cast_features` AS t
+                    SET t.predict_like = CAST((100*s.predict_like) as INT64)
+                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_bird` AS s
+                    WHERE t.day = '{{ execution_date.strftime("%Y-%m-%d") }}' 
+                    AND t.hash = s.hash
+                """,
+                'useLegacySql': False,
+            }
+        }
+    )
+    
     check 
     
     check >> snapshot_casts >> embeddings >> gambit
 
     check >> user_stats
 
-    (gambit, user_stats) >> join >> bird >> bird_bq
+    (gambit, user_stats) >> join >> bird >> bird_bq >> bird_update
 
 
 
