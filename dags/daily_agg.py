@@ -14,7 +14,7 @@ with DAG(
     'daily_agg',
     default_args=default_args,
     description='Run daily data aggregations on PG database',
-    schedule_interval='0 0 * * *',
+    schedule_interval='0 2 * * *',
     max_active_runs=1,
     catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
