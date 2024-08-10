@@ -79,7 +79,7 @@ with DAG(
         cmd_timeout=300,
         get_pty=True)
     
-    bird_filename = 'pipelines/process_casts/bird/{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d-%H") }}_bird.csv'
+    bird_filename = 'pipelines/process_casts/bird/{{ execution_date.strftime("%Y-%m-%d-%H") }}_bird.csv'
     bird_bq = GCSToBigQueryOperator(
         task_id='bird_bq',
         bucket='dsart_nearline1',
