@@ -71,13 +71,20 @@ with DAG(
         cmd_timeout=300,
         get_pty=True)
     
+    bird = SSHOperator(
+        task_id='bird',
+        ssh_conn_id='ssh_worker',
+        command='/home/na/bird2.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+        cmd_timeout=300,
+        get_pty=True)
+    
     check 
     
     check >> snapshot_casts >> embeddings >> gambit
 
     check >> user_stats
 
-    (gambit, user_stats) >> join
+    (gambit, user_stats) >> join >> bird
 
 
 
