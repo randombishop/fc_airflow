@@ -29,6 +29,7 @@ def assemble_results(**context):
     logging.info(f"result_2: {result_2}")
     logging.info(f"result_3: {result_3}")
     to_insert = result_1[0].copy()
+    to_insert['day'] = context['ds']
     for row in result_2:
         category = row['category']
         num = row['num']
