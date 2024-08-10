@@ -38,7 +38,7 @@ def assemble_results(**context):
     columns = ', '.join(to_insert.keys())
     values = ', '.join([f"'{v}'" for v in to_insert.values()])
     insert_sql = f"""
-    INSERT INTO target_table ({columns})
+    INSERT INTO ds.daily_stats ({columns})
     VALUES ({values});
     """
     logging.info(f"Insert SQL: {insert_sql}")
