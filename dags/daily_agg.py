@@ -19,7 +19,14 @@ def assemble_results(**context):
         to_insert[category] = num
     to_insert['spearman'] = result_3
     logging.info(f"Data to insert in postgres: {to_insert}")
-    context['ti'].xcom_push(key='to_insert', value=to_insert)
+    columns = ', '.join(to_insert.keys())
+    values = ', '.join([f"'{v}'" for v in to_insert.values()])
+    insert_sql = f"""
+    INSERT INTO target_table ({columns})
+    VALUES ({values});
+    """
+    logging.info(f"Insert SQL: {insert_sql}")
+    context['ti'].xcom_push(key='insert_sql', value=insert_sql)
     
     
 default_args = {
@@ -82,8 +89,14 @@ with DAG(
         provide_context=True,
     )
     
+    bq_to_pg = PostgresOperator(
+        task_id='bq_to_pg',
+        postgres_conn_id='pg_replicator',
+        sql="{{ ti.xcom_pull(key='insert_sql') }}",
+    )
+    
     daily_casts
 
     links_query >> links_snapshot
     
-    (bq_stats, bq_cats, bq_corr) >> bq_merge
+    (bq_stats, bq_cats, bq_corr) >> bq_merge >> bq_to_pg
