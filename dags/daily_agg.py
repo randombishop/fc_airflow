@@ -33,7 +33,7 @@ def assemble_results(**context):
         category = row['category']
         num = row['num']
         to_insert[category] = num
-    to_insert['spearman'] = result_3[0]['spearman_correlation']
+    to_insert['spearman'] = result_3[0]['spearman']
     logging.info(f"Data to insert in postgres: {to_insert}")
     columns = ', '.join(to_insert.keys())
     values = ', '.join([f"'{v}'" for v in to_insert.values()])

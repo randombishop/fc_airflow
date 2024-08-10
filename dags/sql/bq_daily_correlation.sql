@@ -6,6 +6,6 @@ WITH ranked_data AS (
   WHERE day = '{{ ds }}'
 )
 SELECT
-  CORR(rank1, rank2) AS spearman_correlation
+  CORR(rank1, rank2) AS spearman
 FROM
   ranked_data
