@@ -17,7 +17,7 @@ bq_fields = [
 ]
 
 default_args = {
-    'start_date': airflow.utils.dates.days_ago(75),
+    'start_date': airflow.utils.dates.days_ago(2),
     'retries': 1,
     'retry_delay': datetime.timedelta(hours=1)
 }
