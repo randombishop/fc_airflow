@@ -88,7 +88,7 @@ with DAG(
         write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
-        auto_detect=True
+        autodetect=True
     )
     
     check 
