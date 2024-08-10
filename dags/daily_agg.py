@@ -9,9 +9,15 @@ import logging
 
 
 def assemble_results(**context):
-    result_1 = context['ti'].xcom_pull(task_ids='bq_stats')[0]  # Single row, fields match target
-    result_2 = context['ti'].xcom_pull(task_ids='bq_cats')  # List of rows with 'category' and 'num'
-    result_3 = context['ti'].xcom_pull(task_ids='bq_corr')[0][0]  # Single number
+    xcom1 = context['ti'].xcom_pull(task_ids='bq_stats')
+    logging.info(f"XCOM1: {xcom1}")
+    xcom2 = context['ti'].xcom_pull(task_ids='bq_cats')
+    logging.info(f"XCOM2: {xcom2}")
+    xcom3 = context['ti'].xcom_pull(task_ids='bq_corr')
+    logging.info(f"XCOM3: {xcom3}")
+    result_1 = xcom1[0]  # Single row, fields match target
+    result_2 = xcom2  # List of rows with 'category' and 'num'
+    result_3 = xcom3[0][0]  # Single number
     to_insert = result_1.copy()
     for row in result_2:
         category = row['category']
