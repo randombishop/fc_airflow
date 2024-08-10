@@ -74,22 +74,19 @@ with DAG(
     bq_stats = BigQueryExecuteQueryOperator(
         task_id='bq_stats',
         sql='sql/bq_daily_stats.sql',
-        use_legacy_sql=False,
-        xcom_push=True
+        use_legacy_sql=False
     )
     
     bq_cats = BigQueryExecuteQueryOperator(
         task_id='bq_cats',
         sql='sql/bq_daily_categories.sql',
-        use_legacy_sql=False,
-        xcom_push=True
+        use_legacy_sql=False
     )
     
     bq_corr = BigQueryExecuteQueryOperator(
         task_id='bq_corr',
         sql='sql/bq_daily_correlation.sql',
-        use_legacy_sql=False,
-        xcom_push=True
+        use_legacy_sql=False
     )
     
     bq_merge = PythonOperator(
