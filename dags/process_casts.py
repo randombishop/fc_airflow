@@ -3,6 +3,7 @@ import airflow
 from airflow import DAG
 from airflow.operators.sql import SQLCheckOperator
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
 
@@ -78,13 +79,25 @@ with DAG(
         cmd_timeout=300,
         get_pty=True)
     
+    bird_filename = 'pipelines/process_casts/bird/{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d-%H") }}_bird.csv'
+    bird_bq = GCSToBigQueryOperator(
+        task_id='bird_bq',
+        bucket='dsart_nearline1',
+        source_objects=[bird_filename],
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_bird',
+        write_disposition='WRITE_TRUNCATE',
+        skip_leading_rows=1,
+        source_format='CSV',
+        auto_detect=True
+    )
+    
     check 
     
     check >> snapshot_casts >> embeddings >> gambit
 
     check >> user_stats
 
-    (gambit, user_stats) >> join >> bird
+    (gambit, user_stats) >> join >> bird >> bird_bq
 
 
 
