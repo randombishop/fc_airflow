@@ -4,20 +4,25 @@ from airflow import DAG
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator
+from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from airflow.operators.python import PythonOperator
 import logging
 
 
 def assemble_results(**context):
-    xcom1 = context['ti'].xcom_pull(task_ids='bq_stats')
-    logging.info(f"XCOM1: {xcom1}")
-    xcom2 = context['ti'].xcom_pull(task_ids='bq_cats')
-    logging.info(f"XCOM2: {xcom2}")
-    xcom3 = context['ti'].xcom_pull(task_ids='bq_corr')
-    logging.info(f"XCOM3: {xcom3}")
-    result_1 = xcom1[0]  # Single row, fields match target
-    result_2 = xcom2  # List of rows with 'category' and 'num'
-    result_3 = xcom3[0][0]  # Single number
+    job1 = context['ti'].xcom_pull(task_ids='bq_stats', key='job_id_path')
+    logging.info(f"job1: {job1}")
+    job2 = context['ti'].xcom_pull(task_ids='bq_cats', key='job_id_path')
+    logging.info(f"job2: {job2}")
+    job3 = context['ti'].xcom_pull(task_ids='bq_corr', key='job_id_path')
+    logging.info(f"job3: {job3}")
+    bq_hook = BigQueryHook(gcp_conn_id='google_cloud_default')
+    result_1 = bq_hook.get_query_results(job_id=job1)
+    result_2 = bq_hook.get_query_results(job_id=job2)
+    result_3 = bq_hook.get_query_results(job_id=job3)
+    logging.info(f"result_1: {result_1}")
+    logging.info(f"result_2: {result_2}")
+    logging.info(f"result_3: {result_3}")
     to_insert = result_1.copy()
     for row in result_2:
         category = row['category']
