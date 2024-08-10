@@ -1,6 +1,6 @@
 SELECT 
 count(*) as num_casts,
-count(distinct fid) as num_fid,
+count(distinct fid) as num_fids,
 avg(q_clear) as q_clear,
 avg(q_audience) as q_audience,
 avg(q_info) as q_info,
