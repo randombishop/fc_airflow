@@ -6,6 +6,7 @@ from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToG
 from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from airflow.operators.python import PythonOperator
+import os
 import logging
 
 
@@ -16,7 +17,8 @@ def assemble_results(**context):
     logging.info(f"job2: {job2}")
     job3 = context['ti'].xcom_pull(task_ids='bq_corr', key='job_id_path')
     logging.info(f"job3: {job3}")
-    bq_hook = BigQueryHook(gcp_conn_id='google_cloud_default')
+    region = os.environ['EXECUTOR_REGION']
+    bq_hook = BigQueryHook(gcp_conn_id='google_cloud_default', location=region)
     result_1 = bq_hook.get_query_results(job_id=job1)
     result_2 = bq_hook.get_query_results(job_id=job2)
     result_3 = bq_hook.get_query_results(job_id=job3)
