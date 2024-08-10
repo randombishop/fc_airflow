@@ -28,12 +28,12 @@ def assemble_results(**context):
     logging.info(f"result_1: {result_1}")
     logging.info(f"result_2: {result_2}")
     logging.info(f"result_3: {result_3}")
-    to_insert = result_1.copy()
-    for row in result_2:
+    to_insert = result_1[0].copy()
+    for row in result_2[0]:
         category = row['category']
         num = row['num']
         to_insert[category] = num
-    to_insert['spearman'] = result_3
+    to_insert['spearman'] = result_3[0]['spearman_correlation']
     logging.info(f"Data to insert in postgres: {to_insert}")
     columns = ', '.join(to_insert.keys())
     values = ', '.join([f"'{v}'" for v in to_insert.values()])
