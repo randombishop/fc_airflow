@@ -16,9 +16,6 @@ avg(q_aggressivity) as q_aggressivity,
 avg(q_surprise) as q_surprise,
 avg(q_interesting_ask) as q_interesting_ask,
 avg(q_call_action) q_call_action,
-avg(h36_likes) as num_likes,
-avg(h36_recasts) as num_recasts,
-avg(h36_replies) as num_replies,
 avg(predict_like) as predict_like
 FROM `deep-mark-425321-r7.dsart_farcaster.cast_features` 
 WHERE day = '{{ ds }}'
