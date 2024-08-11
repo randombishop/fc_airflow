@@ -10,31 +10,23 @@ import os
 import logging
 
 
-def assemble_results(**context):
+def bq_merge1_function(**context):
     xcom1 = context['ti'].xcom_pull(task_ids='bq_stats', key='job_id_path')
     xcom2 = context['ti'].xcom_pull(task_ids='bq_cats', key='job_id_path')
-    xcom3 = context['ti'].xcom_pull(task_ids='bq_corr', key='job_id_path')
     region = os.environ['EXECUTOR_REGION']
     _, _, job1 = xcom1.split(':', 2)
     _, _, job2 = xcom2.split(':', 2)
-    _, _, job3 = xcom3.split(':', 2)
-    logging.info(f"job1: {job1}")
-    logging.info(f"job2: {job2}")
-    logging.info(f"job3: {job3}")
     bq_hook = BigQueryHook(gcp_conn_id='google_cloud_default')
     result_1 = bq_hook.get_query_results(job_id=job1, location=region)
     result_2 = bq_hook.get_query_results(job_id=job2, location=region)
-    result_3 = bq_hook.get_query_results(job_id=job3, location=region)
     logging.info(f"result_1: {result_1}")
     logging.info(f"result_2: {result_2}")
-    logging.info(f"result_3: {result_3}")
     to_insert = result_1[0].copy()
     to_insert['day'] = context['ds']
     for row in result_2:
         category = row['category']
         num = row['num']
         to_insert[category] = num
-    to_insert['spearman'] = result_3[0]['spearman']
     logging.info(f"Data to insert in postgres: {to_insert}")
     columns = ', '.join(to_insert.keys())
     values = ', '.join([f"'{v}'" for v in to_insert.values()])
@@ -43,8 +35,32 @@ def assemble_results(**context):
     VALUES ({values});
     """
     logging.info(f"Insert SQL: {insert_sql}")
-    context['ti'].xcom_push(key='insert_sql', value=insert_sql)
-    
+    context['ti'].xcom_push(key='insert_sql1', value=insert_sql)
+
+
+def bq_merge2_function(**context):
+    xcom1 = context['ti'].xcom_pull(task_ids='bq_likes', key='job_id_path')
+    xcom2 = context['ti'].xcom_pull(task_ids='bq_corr', key='job_id_path')
+    region = os.environ['EXECUTOR_REGION']
+    _, _, job1 = xcom1.split(':', 2)
+    _, _, job2 = xcom2.split(':', 2)
+    bq_hook = BigQueryHook(gcp_conn_id='google_cloud_default')
+    result_1 = bq_hook.get_query_results(job_id=job1, location=region)[0]
+    result_2 = bq_hook.get_query_results(job_id=job2, location=region)[0]
+    day = (context['execution_date'] - datetime.timedelta(days=2)).strftime("%Y-%m-%d")
+    logging.info(f"result_1: {result_1}")
+    logging.info(f"result_2: {result_2}")
+    insert_sql = f"""
+    UPDATE ds.daily_stats
+    SET num_likes={result_1['num_likes']},
+        num_replies={result_1['num_replies']},
+        num_recasts={result_1['num_recasts']},
+        spearman={result_2['spearman']}
+    WHERE day='{day}';
+    """
+    logging.info(f"Insert SQL: {insert_sql}")
+    context['ti'].xcom_push(key='insert_sql2', value=insert_sql)
+
     
 default_args = {
     'start_date': airflow.utils.dates.days_ago(3),
@@ -100,20 +116,40 @@ with DAG(
         use_legacy_sql=False
     )
     
-    bq_merge = PythonOperator(
-        task_id='bq_merge',
-        python_callable=assemble_results,
+    bq_likes = BigQueryExecuteQueryOperator(
+        task_id='bq_likes',
+        sql='sql/bq_daily_likes.sql',
+        use_legacy_sql=False
+    )
+    
+    bq_merge1 = PythonOperator(
+        task_id='bq_merge1',
+        python_callable=bq_merge1_function,
         provide_context=True,
     )
     
-    bq_to_pg = PostgresOperator(
-        task_id='bq_to_pg',
+    bq_to_pg1 = PostgresOperator(
+        task_id='bq_to_pg1',
         postgres_conn_id='pg_replicator',
-        sql="{{ ti.xcom_pull(key='insert_sql') }}",
+        sql="{{ ti.xcom_pull(key='insert_sql1') }}",
+    )
+    
+    bq_merge2 = PythonOperator(
+        task_id='bq_merge2',
+        python_callable=bq_merge2_function,
+        provide_context=True,
+    )
+    
+    bq_to_pg2 = PostgresOperator(
+        task_id='bq_to_pg2',
+        postgres_conn_id='pg_replicator',
+        sql="{{ ti.xcom_pull(key='insert_sql2') }}",
     )
     
     daily_casts
 
     links_query >> links_snapshot
     
-    (bq_stats, bq_cats, bq_corr) >> bq_merge >> bq_to_pg
+    (bq_stats, bq_cats) >> bq_merge1 >> bq_to_pg1
+    
+    (bq_likes, bq_corr) >> bq_merge2 >> bq_to_pg2
