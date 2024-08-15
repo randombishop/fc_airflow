@@ -1,1 +1,0 @@
-/home/na/channel_digest.sh
