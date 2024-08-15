@@ -31,7 +31,7 @@ with DAG(
     publish1 = SSHOperator(
         task_id='publish1',
         ssh_conn_id='ssh_worker',
-        command='sh /home/na/channel_digest.sh',
+        command='scripts/channel_digest.sh ',
         cmd_timeout=300,
         get_pty=True)
     publish1
