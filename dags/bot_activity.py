@@ -25,7 +25,7 @@ with DAG(
     update_cd = PostgresOperator(
 		task_id='update_ca',
 		postgres_conn_id='pg_replicator',
-		sql='sql/update_channel_digest.sql')
+		sql='sql/update_channels_digest.sql')
     
     update_cd
 
