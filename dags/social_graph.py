@@ -4,7 +4,6 @@ from airflow import DAG
 from airflow.operators.sql import SQLCheckOperator
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
-from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 
 
@@ -61,14 +60,18 @@ with DAG(
             'query': {
                 'query': """
                     UPDATE `deep-mark-425321-r7.dsart_farcaster.fid_username` AS t
-                    SET t.last_cast = IFNULL(s.last_cast, t.last_cast),
+                    SET t.last_cast = IFNULL(TIMESTAMP_SECONDS(CAST(s.last_cast AS INT64)), t.last_cast),
                         t.num_casts = t.num_casts + s.num_casts,
                         t.username = IFNULL(s.username, t.username)
                     FROM `deep-mark-425321-r7.dsart_farcaster.tmp_user_names` AS s
                     WHERE t.fid = s.fid ;
                     
                     INSERT INTO `deep-mark-425321-r7.dsart_farcaster.fid_username`
-                    SELECT s.*
+                    SELECT s.fid as fid,
+                           TIMESTAMP_SECONDS(CAST(s.first_cast AS INT64)) as first_cast,
+                           TIMESTAMP_SECONDS(CAST(s.last_cast AS INT64)) as last_cast,
+                           s.num_casts as num_casts,
+                           s.user_name as user_name
                     FROM `deep-mark-425321-r7.dsart_farcaster.tmp_user_names` AS s
                     LEFT JOIN `deep-mark-425321-r7.dsart_farcaster.fid_username` AS t
                     ON s.fid = t.fid
