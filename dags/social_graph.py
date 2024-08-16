@@ -62,7 +62,7 @@ with DAG(
                     UPDATE `deep-mark-425321-r7.dsart_farcaster.fid_username` AS t
                     SET t.last_cast = IFNULL(TIMESTAMP_SECONDS(CAST(s.last_cast AS INT64)), t.last_cast),
                         t.num_casts = t.num_casts + s.num_casts,
-                        t.username = IFNULL(s.username, t.username)
+                        t.user_name = IFNULL(s.user_name, t.user_name)
                     FROM `deep-mark-425321-r7.dsart_farcaster.tmp_user_names` AS s
                     WHERE t.fid = s.fid ;
                     
