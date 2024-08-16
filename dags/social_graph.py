@@ -109,14 +109,14 @@ with DAG(
         configuration={
             'query': {
                 'query': """
-                    UPDATE `deep-mark-425321-r7.dsart_farcaster.follows` AS t
+                    UPDATE `deep-mark-425321-r7.dsart_farcaster.followers` AS t
                     SET t.added_at = max( TIMESTAMP_SECONDS(CAST(s.added_at AS INT64)) , t.added_at ),
                         t.removed_at = max( TIMESTAMP_SECONDS(CAST(s.removed_at AS INT64)) , t.removed_at )
                     FROM `deep-mark-425321-r7.dsart_farcaster.tmp_follows` AS s
                     WHERE t.fid_follower = s.fid_follower
                     AND t.fid_followed = s.fid_followed;
                     
-                    INSERT INTO `deep-mark-425321-r7.dsart_farcaster.follows`
+                    INSERT INTO `deep-mark-425321-r7.dsart_farcaster.followers`
                     SELECT s.fid_follower,
                            s.fid_followed, 
                            TIMESTAMP_SECONDS(CAST(s.added_at AS INT64)) as added_at,
