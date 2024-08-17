@@ -131,6 +131,57 @@ with DAG(
         }
     )
     
+    reactions_filename = 'pipelines/social_graph/reactions/{{ execution_date.strftime("%Y-%m-%d-%H") }}_react.csv'
+    reactions1 = PostgresToGCSOperator(
+        task_id="reactions1",
+        postgres_conn_id='pg_replicator',
+        sql='sql/reactions.sql',
+        bucket='dsart_nearline1',
+        filename=reactions_filename,
+        export_format="csv",
+        gzip=False
+    )
+    
+    reactions2 = GCSToBigQueryOperator(
+        task_id='reactions2',
+        bucket='dsart_nearline1',
+        source_objects=[reactions_filename],
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_reactions',
+        write_disposition='WRITE_TRUNCATE',
+        skip_leading_rows=1,
+        source_format='CSV',
+        autodetect=True
+    )
+    
+    reactions3 = BigQueryInsertJobOperator(
+        task_id='reactions3',
+        configuration={
+            'query': {
+                'query': """
+                    UPDATE `deep-mark-425321-r7.dsart_farcaster.reactions` AS t
+                    SET t.num_replies = t.num_replies + s.num_replies,
+                        t.num_likes = t.num_likes + s.num_likes,
+                        t.num_recasts = t.num_recasts + s.num_recasts
+                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_reactions` AS s
+                    WHERE t.fid = s.fid
+                    AND t.target_fid = s.target_fid;
+                    
+                    INSERT INTO `deep-mark-425321-r7.dsart_farcaster.reactions`
+                    SELECT s.fid,
+                           s.target_fid, 
+                           s.num_replies,
+                           s.num_likes,
+                           s.num_recasts
+                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_reactions` AS s
+                    LEFT JOIN `deep-mark-425321-r7.dsart_farcaster.reactions` AS t
+                    ON t.fid = s.fid AND t.target_fid = s.target_fid
+                    WHERE t.fid IS NULL AND t.target_fid IS NULL;
+                """,
+                'useLegacySql': False,
+            }
+        }
+    )
+    
     check 
     
     check >> users1 >> users2  >> users3
