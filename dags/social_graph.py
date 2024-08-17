@@ -187,6 +187,8 @@ with DAG(
     check >> users1 >> users2  >> users3
     
     check >> follows1 >> follows2 >> follows3
+    
+    check >> reactions1 >> reactions2 >> reactions3
 
     
 
