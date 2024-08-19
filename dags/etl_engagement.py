@@ -48,7 +48,7 @@ with DAG(
         task_id='etleng_bq_01',
         bucket='dsart_nearline1',
         source_objects=[filename1],
-        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_engagement01h',
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_engagement01h',
         write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
@@ -65,7 +65,7 @@ with DAG(
                         t.h01_likes = CAST(s.num_like as INT64),
                         t.h01_recasts = CAST(s.num_recast as INT64),
                         t.h01_replies = CAST(s.num_reply as INT64)
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_engagement01h` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_engagement01h` AS s
                     WHERE t.day = '{{ (execution_date - macros.timedelta(hours=1)).strftime("%Y-%m-%d") }}' 
                     AND t.hash = s.cast_hash
                 """,
