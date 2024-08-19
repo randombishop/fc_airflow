@@ -47,7 +47,7 @@ with DAG(
         task_id='users2',
         bucket='dsart_nearline1',
         source_objects=[users_filename],
-        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_user_names',
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_user_names',
         write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
@@ -63,7 +63,7 @@ with DAG(
                     SET t.last_cast = IFNULL(TIMESTAMP_SECONDS(CAST(s.last_cast AS INT64)), t.last_cast),
                         t.num_casts = t.num_casts + s.num_casts,
                         t.user_name = IFNULL(s.user_name, t.user_name)
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_user_names` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_user_names` AS s
                     WHERE t.fid = s.fid ;
                     
                     INSERT INTO `deep-mark-425321-r7.dsart_farcaster.fid_username`
@@ -72,7 +72,7 @@ with DAG(
                            TIMESTAMP_SECONDS(CAST(s.last_cast AS INT64)) as last_cast,
                            s.num_casts as num_casts,
                            s.user_name as user_name
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_user_names` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_user_names` AS s
                     LEFT JOIN `deep-mark-425321-r7.dsart_farcaster.fid_username` AS t
                     ON s.fid = t.fid
                     WHERE t.fid IS NULL;
@@ -97,7 +97,7 @@ with DAG(
         task_id='follows2',
         bucket='dsart_nearline1',
         source_objects=[follows_filename],
-        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_follows',
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_follows',
         write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
@@ -112,7 +112,7 @@ with DAG(
                     UPDATE `deep-mark-425321-r7.dsart_farcaster.followers` AS t
                     SET t.added_at = GREATEST( TIMESTAMP_SECONDS(CAST(s.added_at AS INT64)) , t.added_at ),
                         t.removed_at = GREATEST( TIMESTAMP_SECONDS(CAST(s.removed_at AS INT64)) , t.removed_at )
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_follows` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_follows` AS s
                     WHERE t.fid_follower = s.fid_follower
                     AND t.fid_followed = s.fid_followed;
                     
@@ -121,7 +121,7 @@ with DAG(
                            s.fid_followed, 
                            TIMESTAMP_SECONDS(CAST(s.added_at AS INT64)) as added_at,
                            TIMESTAMP_SECONDS(CAST(s.removed_at AS INT64)) as removed_at
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_follows` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_follows` AS s
                     LEFT JOIN `deep-mark-425321-r7.dsart_farcaster.followers` AS t
                     ON t.fid_follower = s.fid_follower AND t.fid_followed = s.fid_followed
                     WHERE t.fid_follower IS NULL AND t.fid_followed IS NULL;
@@ -146,7 +146,7 @@ with DAG(
         task_id='reactions2',
         bucket='dsart_nearline1',
         source_objects=[reactions_filename],
-        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_reactions',
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_reactions',
         write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
@@ -162,7 +162,7 @@ with DAG(
                     SET t.num_replies = t.num_replies + s.num_replies,
                         t.num_likes = t.num_likes + s.num_likes,
                         t.num_recasts = t.num_recasts + s.num_recasts
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_reactions` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_reactions` AS s
                     WHERE t.fid = s.fid
                     AND t.target_fid = s.target_fid;
                     
@@ -172,7 +172,7 @@ with DAG(
                            s.num_replies,
                            s.num_likes,
                            s.num_recasts
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_reactions` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_reactions` AS s
                     LEFT JOIN `deep-mark-425321-r7.dsart_farcaster.reactions` AS t
                     ON t.fid = s.fid AND t.target_fid = s.target_fid
                     WHERE t.fid IS NULL AND t.target_fid IS NULL;

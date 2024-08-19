@@ -86,7 +86,7 @@ with DAG(
         task_id='bird_bq',
         bucket='dsart_nearline1',
         source_objects=[bird_filename],
-        destination_project_dataset_table='deep-mark-425321-r7.dsart_farcaster.tmp_bird',
+        destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_bird',
         write_disposition='WRITE_TRUNCATE',
         skip_leading_rows=1,
         source_format='CSV',
@@ -100,7 +100,7 @@ with DAG(
                 'query': """
                     UPDATE `deep-mark-425321-r7.dsart_farcaster.cast_features` AS t
                     SET t.predict_like = CAST((100*s.predict_like) as INT64)
-                    FROM `deep-mark-425321-r7.dsart_farcaster.tmp_bird` AS s
+                    FROM `deep-mark-425321-r7.dsart_tmp.tmp_bird` AS s
                     WHERE t.day = '{{ execution_date.strftime("%Y-%m-%d") }}' 
                     AND t.hash = s.hash
                 """,
