@@ -32,7 +32,7 @@ with DAG(
         task_id='publish1',
         ssh_conn_id='ssh_worker',
         command='/home/na/channel_digest.sh    ',
-        cmd_timeout=300,
+        cmd_timeout=1200,
         get_pty=True)
     publish1
     
