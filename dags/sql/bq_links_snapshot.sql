@@ -1,3 +1,5 @@
+CREATE OR REPLACE TABLE dsart_tmp.links_snapshot AS
+
 SELECT fid,
 	
   (SELECT COUNT(DISTINCT e)

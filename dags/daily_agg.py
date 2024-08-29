@@ -112,9 +112,14 @@ with DAG(
     sql='sql/bq_links_update.sql',
     use_legacy_sql=False
   )
+  links_snapshot_tmp = bq_stats = BigQueryExecuteQueryOperator(
+    task_id='links_snapshot_tmp',
+    sql='sql/bq_links_snapshot.sql',
+    use_legacy_sql=False
+  )
   links_snapshot = BigQueryToGCSOperator(
     task_id="links_snapshot",
-    source_project_dataset_table='sql/links.sql',
+    source_project_dataset_table='dsart_tmp.links_snapshot',
     destination_cloud_storage_uris=['gs://dsart_nearline1/pipelines/snapshots/links/{{ ds }}.csv'],
     export_format="csv")
   
@@ -160,7 +165,7 @@ with DAG(
   
   daily_casts
 
-  links_query >> links_tmp >> links_update >> links_snapshot
+  links_query >> links_tmp >> links_update >> links_snapshot_tmp >>links_snapshot
   
   (bq_stats, bq_cats) >> bq_merge1 >> bq_push1
   
