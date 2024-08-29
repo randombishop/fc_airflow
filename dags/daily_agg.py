@@ -31,7 +31,7 @@ def bq_merge1_function(**context):
     to_insert[category] = num
   logging.info(f"Data to insert in postgres: {to_insert}")
   columns = ', '.join(to_insert.keys())
-  values = ', '.join([f"'{v}'" for v in to_insert.values()])
+  values = ', '.join([f"'{v}'" if isinstance(v, str) else str(v) for v in to_insert.values()])
   insert_sql = f"""
   INSERT INTO dsart_farcaster.daily_stats ({columns})
   VALUES ({values});

@@ -33,4 +33,6 @@ SELECT fid,
 FROM 
 (select distinct fid from dsart_farcaster.fid_stats_links) as t0
 
+ORDER BY fid
+
 
