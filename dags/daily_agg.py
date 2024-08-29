@@ -146,7 +146,6 @@ with DAG(
   )
   bq_push1 = BigQueryExecuteQueryOperator(
     task_id='bq_push1',
-    postgres_conn_id='pg_replicator',
     sql="{{ ti.xcom_pull(key='insert_sql1') }}",
   )
   bq_merge2 = PythonOperator(
@@ -156,7 +155,6 @@ with DAG(
   )
   bq_push2 = BigQueryExecuteQueryOperator(
     task_id='bq_push2',
-    postgres_conn_id='pg_replicator',
     sql="{{ ti.xcom_pull(key='insert_sql2') }}",
   )
   
