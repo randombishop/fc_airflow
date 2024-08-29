@@ -8,7 +8,7 @@ SELECT
     ELSE 
       ARRAY(
         SELECT CAST(value AS INT64)
-        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_from_add, r'\{|\}', ''), ',')) AS value
+        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_from_add, r'\[|\]', ''), ',')) AS value
       )
     END AS link_from_add,
 
@@ -17,7 +17,7 @@ SELECT
     ELSE 
       ARRAY(
         SELECT CAST(value AS INT64)
-        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_from_del, r'\{|\}', ''), ',')) AS value
+        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_from_del, r'\[|\]', ''), ',')) AS value
       )
     END AS link_from_del,
 
@@ -26,7 +26,7 @@ SELECT
     ELSE 
       ARRAY(
         SELECT CAST(value AS INT64)
-        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_to_add, r'\{|\}', ''), ',')) AS value
+        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_to_add, r'\[|\]', ''), ',')) AS value
       )
     END AS link_to_add,
 
@@ -35,7 +35,7 @@ SELECT
     ELSE 
       ARRAY(
         SELECT CAST(value AS INT64)
-        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_to_del, r'\{|\}', ''), ',')) AS value
+        FROM UNNEST(SPLIT(REGEXP_REPLACE(link_to_del, r'\[|\]', ''), ',')) AS value
       )
     END AS link_to_del 
 
