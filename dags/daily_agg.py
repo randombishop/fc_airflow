@@ -152,6 +152,7 @@ with DAG(
   bq_push1 = BigQueryExecuteQueryOperator(
     task_id='bq_push1',
     sql="{{ ti.xcom_pull(key='insert_sql1') }}",
+    use_legacy_sql=False
   )
   bq_merge2 = PythonOperator(
     task_id='bq_merge2',
@@ -161,6 +162,7 @@ with DAG(
   bq_push2 = BigQueryExecuteQueryOperator(
     task_id='bq_push2',
     sql="{{ ti.xcom_pull(key='insert_sql2') }}",
+    use_legacy_sql=False
   )
   
   daily_casts
