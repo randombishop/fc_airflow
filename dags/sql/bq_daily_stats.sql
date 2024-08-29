@@ -17,5 +17,5 @@ avg(q_surprise) as q_surprise,
 avg(q_interesting_ask) as q_interesting_ask,
 avg(q_call_action) q_call_action,
 avg(predict_like) as predict_like
-FROM `deep-mark-425321-r7.dsart_farcaster.cast_features` 
+FROM dsart_farcaster.cast_features
 WHERE day = '{{ ds }}'
