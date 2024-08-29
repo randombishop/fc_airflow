@@ -114,55 +114,47 @@ with DAG(
   )
   links_snapshot = BigQueryToGCSOperator(
     task_id="links_snapshot",
-    sql='sql/links.sql',
-    bucket='dsart_nearline1',
-    filename='pipelines/snapshots/links/{{ ds }}.csv',
+    source_project_dataset_table='sql/links.sql',
+    destination_cloud_storage_uris=['gs://dsart_nearline1/pipelines/snapshots/links/{{ ds }}.csv'],
     export_format="csv",
     gzip=False)
   
-
+  # Calculate daily stats and push them to daily_stats table
   bq_stats = BigQueryExecuteQueryOperator(
     task_id='bq_stats',
     sql='sql/bq_daily_stats.sql',
     use_legacy_sql=False
   )
-  
   bq_cats = BigQueryExecuteQueryOperator(
     task_id='bq_cats',
     sql='sql/bq_daily_categories.sql',
     use_legacy_sql=False
   )
-  
   bq_corr = BigQueryExecuteQueryOperator(
     task_id='bq_corr',
     sql='sql/bq_daily_correlation.sql',
     use_legacy_sql=False
   )
-  
   bq_likes = BigQueryExecuteQueryOperator(
     task_id='bq_likes',
     sql='sql/bq_daily_likes.sql',
     use_legacy_sql=False
   )
-  
   bq_merge1 = PythonOperator(
     task_id='bq_merge1',
     python_callable=bq_merge1_function,
     provide_context=True,
   )
-  
   bq_push1 = BigQueryExecuteQueryOperator(
     task_id='bq_push1',
     postgres_conn_id='pg_replicator',
     sql="{{ ti.xcom_pull(key='insert_sql1') }}",
   )
-  
   bq_merge2 = PythonOperator(
     task_id='bq_merge2',
     python_callable=bq_merge2_function,
     provide_context=True,
   )
-  
   bq_push2 = BigQueryExecuteQueryOperator(
     task_id='bq_push2',
     postgres_conn_id='pg_replicator',
