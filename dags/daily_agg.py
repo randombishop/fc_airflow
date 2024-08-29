@@ -33,11 +33,11 @@ def bq_merge1_function(**context):
   columns = ', '.join(to_insert.keys())
   values = ', '.join([f"'{v}'" if isinstance(v, str) else str(v) for v in to_insert.values()])
   insert_sql = f"""
-  INSERT INTO dsart_farcaster.daily_stats ({columns})
+  INSERT INTO dsart_farcaster.daily_stats ({columns})  
   VALUES ({values});
   """
   logging.info(f"Insert SQL: {insert_sql}")
-  context['ti'].xcom_push(key='insert_sql1', value=insert_sql)
+  context['ti'].xcom_push(key='insert_sql1', value=insert_sql.strip())
 
 
 def bq_merge2_function(**context):
@@ -53,15 +53,15 @@ def bq_merge2_function(**context):
   logging.info(f"result_1: {result_1}")
   logging.info(f"result_2: {result_2}")
   insert_sql = f"""
-  UPDATE dsart_farcaster.daily_stats
-  SET num_likes={result_1['num_likes']},
-      num_replies={result_1['num_replies']},
-      num_recasts={result_1['num_recasts']},
-      spearman={result_2['spearman']}
+  UPDATE dsart_farcaster.daily_stats 
+  SET num_likes={result_1['num_likes']}, 
+      num_replies={result_1['num_replies']}, 
+      num_recasts={result_1['num_recasts']}, 
+      spearman={result_2['spearman']} 
   WHERE day='{day}';
   """
   logging.info(f"Insert SQL: {insert_sql}")
-  context['ti'].xcom_push(key='insert_sql2', value=insert_sql)
+  context['ti'].xcom_push(key='insert_sql2', value=insert_sql.strip())
 
     
 default_args = {
