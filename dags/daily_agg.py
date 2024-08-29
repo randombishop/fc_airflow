@@ -116,8 +116,7 @@ with DAG(
     task_id="links_snapshot",
     source_project_dataset_table='sql/links.sql',
     destination_cloud_storage_uris=['gs://dsart_nearline1/pipelines/snapshots/links/{{ ds }}.csv'],
-    export_format="csv",
-    gzip=False)
+    export_format="csv")
   
   # Calculate daily stats and push them to daily_stats table
   bq_stats = BigQueryExecuteQueryOperator(
