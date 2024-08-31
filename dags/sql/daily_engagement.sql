@@ -5,8 +5,8 @@ t0.fid AS source_fid,
 t0.type AS type,
 CASE WHEN t0.type=3 THEN CAST(t0.body->>'type' AS INTEGER) ELSE NULL END AS reaction_type,
 FROM public.messages t0
-WHERE t0.timestamp>'2024-08-25'
-AND t0.timestamp<'2024-08-26'
+WHERE t0.timestamp>'{{ ds }}'
+AND t0.timestamp<'{{ macros.ds_add(ds, 1) }}' 
 AND t0.type in (1, 3) 
 AND ((t0.body->'parent'->>'fid' IS NOT NULL) OR (t0.body->'target'->>'fid' IS NOT NULL))
 
