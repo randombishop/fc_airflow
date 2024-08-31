@@ -143,6 +143,32 @@ with DAG(
     use_legacy_sql=False
   )
 
+  # pg->bq ETL to track engagement
+  engagement_filename = 'pipelines/daily_agg/engagement/{{ ds }}.csv'
+  engagement_query = PostgresToGCSOperator(
+    task_id='engagement_query',
+    postgres_conn_id='pg_replicator',
+    sql='sql/daily_engagement.sql',
+    bucket='dsart_nearline1',
+    filename=engagement_filename,
+    export_format="csv",
+    gzip=False)
+  engagement_tmp = GCSToBigQueryOperator(
+    task_id='engagement_tmp',
+    bucket='dsart_nearline1',
+    source_objects=[engagement_filename],
+    destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_daily_engagement',
+    write_disposition='WRITE_TRUNCATE',
+    skip_leading_rows=1,
+    source_format='CSV',
+    autodetect=True
+  )
+  engagement_update = BigQueryExecuteQueryOperator(
+    task_id='engagement_update',
+    sql='sql/bq_engagement_update.sql',
+    use_legacy_sql=False
+  )
+  
   # Calculate daily stats and push them to daily_stats table
   bq_stats = BigQueryExecuteQueryOperator(
     task_id='bq_stats',
@@ -188,6 +214,8 @@ with DAG(
   links_query >> links_tmp >> links_update >> links_snapshot_tmp >> links
   
   messages_query >> messages_tmp >> messages_update
+  
+  engagement_query >> engagement_tmp >> engagement_update
   
   (bq_stats, bq_cats) >> bq_merge1 >> bq_push1
   
