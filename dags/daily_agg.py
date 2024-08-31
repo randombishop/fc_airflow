@@ -80,12 +80,6 @@ with DAG(
   catchup=False,
   dagrun_timeout=datetime.timedelta(minutes=60),
 ) as dag:
-
-  # Aggregate pg table casts to count daily volume
-  daily_casts = PostgresOperator(
-    task_id='daily_casts',
-    postgres_conn_id='pg_replicator',
-    sql='sql/daily_casts.sql')
   
   # pg->bq ETL to track followers and following
   links_filename = 'pipelines/daily_agg/links/{{ ds }}.csv'
@@ -123,6 +117,32 @@ with DAG(
     destination_cloud_storage_uris=['gs://dsart_nearline1/pipelines/snapshots/links/{{ ds }}.csv'],
     export_format="csv")
   
+  # pg->bq ETL to track messages
+  messages_filename = 'pipelines/daily_agg/messages/{{ ds }}.csv'
+  messages_query = PostgresToGCSOperator(
+    task_id='messages_query',
+    postgres_conn_id='pg_replicator',
+    sql='sql/daily_messages.sql',
+    bucket='dsart_nearline1',
+    filename=messages_filename,
+    export_format="csv",
+    gzip=False)
+  messages_tmp = GCSToBigQueryOperator(
+    task_id='messages_tmp',
+    bucket='dsart_nearline1',
+    source_objects=[messages_filename],
+    destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_daily_messages',
+    write_disposition='WRITE_TRUNCATE',
+    skip_leading_rows=1,
+    source_format='CSV',
+    autodetect=True
+  )
+  messages_update = BigQueryExecuteQueryOperator(
+    task_id='messages_update',
+    sql='sql/bq_messages_update.sql',
+    use_legacy_sql=False
+  )
+
   # Calculate daily stats and push them to daily_stats table
   bq_stats = BigQueryExecuteQueryOperator(
     task_id='bq_stats',
@@ -165,9 +185,9 @@ with DAG(
     use_legacy_sql=False
   )
   
-  daily_casts
-
-  links_query >> links_tmp >> links_update >> links_snapshot_tmp >>links
+  links_query >> links_tmp >> links_update >> links_snapshot_tmp >> links
+  
+  messages_query >> messages_tmp >> messages_update
   
   (bq_stats, bq_cats) >> bq_merge1 >> bq_push1
   
