@@ -1,7 +1,7 @@
 import datetime
 import airflow
 from airflow import DAG
-from airflow.operators.postgres_operator import PostgresOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
 from airflow.providers.google.cloud.transfers.bigquery_to_gcs import BigQueryToGCSOperator
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
@@ -169,6 +169,30 @@ with DAG(
     use_legacy_sql=False
   )
   
+  # Aggregate daily stats about user preferences
+  prefs_filename = 'pipelines/daily_agg/fid_prefs/{{ ds }}_prefs.csv'
+  prefs_script = SSHOperator(
+    task_id='prefs_script',
+    ssh_conn_id='ssh_worker',
+    command='/home/na/fid_prefs.sh "{{ ds }}"',
+    cmd_timeout=1200,
+    get_pty=True)
+  prefs_tmp = GCSToBigQueryOperator(
+    task_id='prefs_tmp',
+    bucket='dsart_nearline1',
+    source_objects=[prefs_filename],
+    destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_daily_prefs',
+    write_disposition='WRITE_TRUNCATE',
+    skip_leading_rows=1,
+    source_format='CSV',
+    autodetect=True
+  )
+  prefs_update = BigQueryExecuteQueryOperator(
+    task_id='prefs_update',
+    sql='sql/bq_prefs_update.sql',
+    use_legacy_sql=False
+  )
+
   # Calculate daily stats and push them to daily_stats table
   bq_stats = BigQueryExecuteQueryOperator(
     task_id='bq_stats',
@@ -220,3 +244,5 @@ with DAG(
   (bq_stats, bq_cats) >> bq_merge1 >> bq_push1
   
   (bq_likes, bq_corr) >> bq_merge2 >> bq_push2
+
+  (messages_update, engagement_update) >> prefs_script >> prefs_tmp >> prefs_update
