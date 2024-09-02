@@ -106,7 +106,7 @@ with DAG(
     sql='sql/bq_links_update.sql',
     use_legacy_sql=False
   )
-  links_snapshot_tmp = bq_stats = BigQueryExecuteQueryOperator(
+  links_snapshot_tmp = BigQueryExecuteQueryOperator(
     task_id='links_snapshot_tmp',
     sql='sql/bq_links_snapshot.sql',
     use_legacy_sql=False
