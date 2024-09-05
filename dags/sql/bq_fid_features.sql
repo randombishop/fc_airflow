@@ -161,7 +161,7 @@ WITH
 word_counts AS (
 SELECT 
 fid, 
-word, 
+REGEXP_REPLACE(word, r'\\[^nrtbf"\\]|["\']', '') as word, 
 count(*) as freq 
 FROM dsart_farcaster.fid_stats_prefs, unnest(words) word 
 WHERE day>(SELECT cutoff_date FROM dsart_tmp.fid_features_params)
