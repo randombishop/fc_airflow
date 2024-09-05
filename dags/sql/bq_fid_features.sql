@@ -182,6 +182,7 @@ fid,
 '{'||STRING_AGG('"'||word||'": '||freq, ', ')||'}' as words_dict
 FROM word_ranks
 WHERE rn<=50
+AND LENGTH(word)>3
 GROUP BY fid
 ORDER BY fid
 ) ;
