@@ -170,28 +170,28 @@ with DAG(
   )
   
   # Aggregate daily stats about user preferences
-  #prefs_filename = 'pipelines/daily_agg/fid_prefs/{{ ds }}_prefs.csv'
-  #prefs_script = SSHOperator(
-  #  task_id='prefs_script',
-  #  ssh_conn_id='ssh_worker',
-  #  command='/home/na/fid_prefs.sh "{{ ds }}"',
-  #  cmd_timeout=1200,
-  #  get_pty=True)
-  #prefs_tmp = GCSToBigQueryOperator(
-  #  task_id='prefs_tmp',
-  #  bucket='dsart_nearline1',
-  #  source_objects=[prefs_filename],
-  #  destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_daily_prefs',
-  #  write_disposition='WRITE_TRUNCATE',
-  #  skip_leading_rows=1,
-  #  source_format='CSV',
-  #  autodetect=True
-  #)
-  #prefs_update = BigQueryExecuteQueryOperator(
-  #  task_id='prefs_update',
-  #  sql='sql/bq_prefs_update.sql',
-  #  use_legacy_sql=False
-  #)
+  prefs_filename = 'pipelines/daily_agg/fid_prefs/{{ ds }}_prefs.csv'
+  prefs_script = SSHOperator(
+    task_id='prefs_script',
+    ssh_conn_id='ssh_worker',
+    command='/home/na/fid_prefs.sh "{{ ds }}"',
+    cmd_timeout=1200,
+    get_pty=True)
+  prefs_tmp = GCSToBigQueryOperator(
+    task_id='prefs_tmp',
+    bucket='dsart_nearline1',
+    source_objects=[prefs_filename],
+    destination_project_dataset_table='deep-mark-425321-r7.dsart_tmp.tmp_daily_prefs',
+    write_disposition='WRITE_TRUNCATE',
+    skip_leading_rows=1,
+    source_format='CSV',
+    autodetect=True
+  )
+  prefs_update = BigQueryExecuteQueryOperator(
+    task_id='prefs_update',
+    sql='sql/bq_prefs_update.sql',
+    use_legacy_sql=False
+  )
 
   # Calculate daily stats and push them to daily_stats table
   bq_stats = BigQueryExecuteQueryOperator(
@@ -245,4 +245,4 @@ with DAG(
   
   (bq_likes, bq_corr) >> bq_merge2 >> bq_push2
 
-  #(messages_update, engagement_update) >> prefs_script >> prefs_tmp >> prefs_update
+  (messages_update, engagement_update) >> prefs_script >> prefs_tmp >> prefs_update
