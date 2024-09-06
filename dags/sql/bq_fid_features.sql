@@ -1,5 +1,5 @@
 CREATE OR REPLACE TABLE dsart_tmp.fid_features_params AS 
-SELECT DATE_SUB(CURRENT_DATE(), INTERVAL 31 DAY) AS cutoff_date;
+SELECT CURRENT_DATE() as day, DATE_SUB(CURRENT_DATE(), INTERVAL 31 DAY) AS cutoff_date;
 
 
 CREATE OR REPLACE TABLE dsart_tmp.fid_features_msg AS 
@@ -192,6 +192,7 @@ CREATE OR REPLACE TABLE dsart_farcaster.fid_features
 CLUSTER BY fid
 AS
 SELECT 
+(SELECT day FROM dsart_tmp.fid_features_params) as day,
 t.*,
 msg.* EXCEPT(fid),
 spam.* EXCEPT(fid),
@@ -210,3 +211,6 @@ LEFT JOIN dsart_tmp.fid_features_eng eng ON t.fid=eng.fid
 LEFT JOIN dsart_tmp.fid_features_prefs prefs ON t.fid=prefs.fid
 LEFT JOIN dsart_tmp.fid_features_lang lang ON t.fid=lang.fid
 LEFT JOIN dsart_tmp.fid_features_words word ON t.fid=word.fid ;
+
+
+ALTER TABLE dsart_farcaster.fid_features ADD PRIMARY KEY (fid) NOT ENFORCED;
