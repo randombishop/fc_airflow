@@ -33,19 +33,15 @@ PERCENTILE_CONT(msg_messages_per_day, 0.95) OVER() AS threshold_messages_per_day
 PERCENTILE_CONT(msg_ratio_deletes, 0.95) OVER() AS threshold_ratio_deletes,
 PERCENTILE_CONT(msg_avg_time_any, 0.05) OVER() AS threshold_avg_time
 FROM dsart_tmp.fid_features_msg 
-WHERE msg_messages>10 and msg_num_days>1
 LIMIT 1;
 
 
 CREATE OR REPLACE TABLE dsart_tmp.fid_features_spam AS 
 SELECT
 fid,
-IF(msg_messages>10 AND msg_num_days>1 AND msg_messages_per_day>(SELECT threshold_messages_per_day from dsart_tmp.fid_features_msg_stats),
-1,0) AS spam_messages_per_day,
-IF(msg_messages>10 AND msg_num_days>1 AND msg_ratio_deletes>(SELECT threshold_ratio_deletes from dsart_tmp.fid_features_msg_stats),
-1,0) AS spam_deletes,
-IF(msg_messages>10 AND msg_num_days>1 AND msg_avg_time_any<(SELECT threshold_avg_time from dsart_tmp.fid_features_msg_stats),
-1,0) AS spam_speed
+IF(msg_messages_per_day>(SELECT threshold_messages_per_day from dsart_tmp.fid_features_msg_stats),1,0) AS spam_messages_per_day,
+IF(msg_ratio_deletes>(SELECT threshold_ratio_deletes from dsart_tmp.fid_features_msg_stats),1,0) AS spam_deletes,
+IF(msg_avg_time_any<(SELECT threshold_avg_time from dsart_tmp.fid_features_msg_stats),1,0) AS spam_speed
 FROM dsart_tmp.fid_features_msg 
 ORDER BY fid;
 
@@ -196,6 +192,7 @@ SELECT
 t.*,
 msg.* EXCEPT(fid),
 spam.* EXCEPT(fid),
+CAST((spam.spam_messages_per_day+spam.spam_deletes+spam.spam_speed)>0 as INT) as spam_any,
 f1.* EXCEPT(fid), 
 f2.* EXCEPT(fid),
 eng.* EXCEPT(fid),
@@ -214,3 +211,27 @@ LEFT JOIN dsart_tmp.fid_features_words word ON t.fid=word.fid ;
 
 
 ALTER TABLE dsart_farcaster.fid_features ADD PRIMARY KEY (fid) NOT ENFORCED;
+
+
+CREATE OR REPLACE TABLE dsart_farcaster.fid_features_stats
+AS
+SELECT 
+APPROX_QUANTILES(msg_messages_per_day, 100)[OFFSET(95)] AS msg_messages_per_day_p95,
+APPROX_QUANTILES(msg_ratio_deletes, 100)[OFFSET(95)] AS msg_ratio_deletes_p95,
+APPROX_QUANTILES(msg_avg_time_any, 100)[OFFSET(5)] AS msg_avg_time_any_p05,
+avg(spam_any) as spam_any,
+avg(prefs_q_info) as 	prefs_q_info,
+avg(prefs_q_funny) as prefs_q_funny,
+avg(prefs_q_happiness) as prefs_q_happiness,
+avg(prefs_c_arts) as prefs_c_arts,
+avg(prefs_c_business) as prefs_c_business,
+avg(prefs_c_crypto) as prefs_c_crypto,
+avg(prefs_c_culture) as prefs_c_culture,
+avg(prefs_c_misc) as prefs_c_misc,
+avg(prefs_c_money) as prefs_c_money,
+avg(prefs_c_na) as prefs_c_na,
+avg(prefs_c_nature) as prefs_c_nature,
+avg(prefs_c_politics) as prefs_c_politics,
+avg(prefs_c_sports) as prefs_c_sports,
+avg(prefs_c_tech_science) as prefs_c_tech_science
+from dsart_farcaster.fid_features ;
