@@ -235,6 +235,12 @@ with DAG(
     use_legacy_sql=False
   )
   
+  fid_features = BigQueryExecuteQueryOperator(
+    task_id='fid_features',
+    sql='sql/bq_fid_features.sql',
+    use_legacy_sql=False
+  )
+  
   links_query >> links_tmp >> links_update >> links_snapshot_tmp >> links
   
   messages_query >> messages_tmp >> messages_update
@@ -246,3 +252,5 @@ with DAG(
   (bq_likes, bq_corr) >> bq_merge2 >> bq_push2
 
   (messages_update, engagement_update) >> prefs_script >> prefs_tmp >> prefs_update
+  
+  (links, messages_update, engagement_update, prefs_update, bq_push1, bq_push2) >> fid_features
