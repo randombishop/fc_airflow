@@ -198,6 +198,27 @@ f1.* EXCEPT(fid),
 f2.* EXCEPT(fid),
 eng.* EXCEPT(fid),
 prefs.* EXCEPT(fid), 
+CASE 
+WHEN prefs_c_arts IS NULL THEN NULL 
+ELSE (
+SELECT category
+FROM UNNEST([
+STRUCT(prefs_c_arts AS value, 'c_arts' AS category),
+STRUCT(prefs_c_business AS value, 'c_business' AS category),
+STRUCT(prefs_c_crypto AS value, 'c_crypto' AS category),
+STRUCT(prefs_c_culture AS value, 'c_culture' AS category),
+STRUCT(prefs_c_misc AS value, 'c_misc' AS category),
+STRUCT(prefs_c_money AS value, 'c_money' AS category),
+STRUCT(prefs_c_na AS value, 'c_na' AS category),
+STRUCT(prefs_c_nature AS value, 'c_nature' AS category),
+STRUCT(prefs_c_politics AS value, 'c_politics' AS category),
+STRUCT(prefs_c_sports AS value, 'c_sports' AS category),
+STRUCT(prefs_c_tech_science AS value, 'c_tech_science' AS category)
+]) 
+ORDER BY value DESC 
+LIMIT 1
+)
+END AS prefs_category,
 lang.* EXCEPT(fid), 
 word.* EXCEPT(fid)
 FROM dsart_farcaster.fid_username t
