@@ -165,7 +165,15 @@ with DAG(
             'query': {
                 'query': """
                     UPDATE `deep-mark-425321-r7.dsart_farcaster.reactions` AS t
-                    SET t.num_replies = t.num_replies + s.num_replies,
+                    SET t.first_timestamp = COALESCE(
+                                     LEAST(TIMESTAMP_SECONDS(CAST(s.first_timestamp AS INT64)) , t.first_timestamp),
+                                     TIMESTAMP_SECONDS(CAST(s.first_timestamp AS INT64)),
+                                     t.first_timestamp),
+                        t.last_timestamp = COALESCE(
+                                     GREATEST(TIMESTAMP_SECONDS(CAST(s.last_timestamp AS INT64)) , t.last_timestamp),
+                                     TIMESTAMP_SECONDS(CAST(s.last_timestamp AS INT64)),
+                                     t.last_timestamp),
+                        t.num_replies = t.num_replies + s.num_replies,
                         t.num_likes = t.num_likes + s.num_likes,
                         t.num_recasts = t.num_recasts + s.num_recasts
                     FROM `deep-mark-425321-r7.dsart_tmp.tmp_reactions` AS s
@@ -174,6 +182,8 @@ with DAG(
                     
                     INSERT INTO `deep-mark-425321-r7.dsart_farcaster.reactions`
                     SELECT s.fid,
+                           TIMESTAMP_SECONDS(CAST(s.first_timestamp AS INT64)) as first_timestamp,
+                           TIMESTAMP_SECONDS(CAST(s.last_timestamp AS INT64)) as last_timestamp,
                            s.target_fid, 
                            s.num_replies,
                            s.num_likes,
