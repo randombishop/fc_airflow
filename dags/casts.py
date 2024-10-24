@@ -7,15 +7,15 @@ from utils import exec_dune_query, dataframe_to_gcs
 
 
 def pull_casts(**context):
-  ts_from = context['execution_date'].strftime('%Y-%m-%d %H:%M:%S')
-  ts_to = (context['execution_date'] + datetime.timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
+  ts_from = context['logical_date'].strftime('%Y-%m-%d %H:%M:%S')
+  ts_to = (context['logical_date'] + datetime.timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
   params = [
     QueryParameter.text_type(name="ts_from", value=ts_from),
     QueryParameter.text_type(name="ts_to", value=ts_to)
   ]
   query_id = 4188892
   df = exec_dune_query(query_id, params)
-  tag = context['execution_date'].strftime("%Y-%m-%d-%H")
+  tag = context['logical_date'].strftime("%Y-%m-%d-%H")
   destination = f'pipelines/dune/casts/{tag}_casts.csv'
   dataframe_to_gcs(df, destination)
 
