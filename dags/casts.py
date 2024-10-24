@@ -2,6 +2,7 @@ import datetime
 import airflow
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 from dune_client.types import QueryParameter
 from utils import exec_dune_query, dataframe_to_gcs
 import logging
@@ -17,6 +18,8 @@ def pull_casts(**context):
   ]
   query_id = 4188892
   df = exec_dune_query(query_id, params)
+  if len(df) < 1000:
+    raise Exception(f"Dataframe is too small: {len(df)}")
   tag = context['logical_date'].strftime("%Y-%m-%d-%H")
   destination = f'pipelines/dune/casts/{tag}_casts.csv'
   dataframe_to_gcs(df, destination)
@@ -39,10 +42,17 @@ with DAG(
   dagrun_timeout=datetime.timedelta(hours=1)
 ) as dag:
 
-  pull_casts = PythonOperator(
-    task_id='pull_casts',
+  casts = PythonOperator(
+    task_id='casts',
     python_callable=pull_casts,
     provide_context=True,
   )
   
-  pull_casts
+  embeddings = SSHOperator(
+    task_id='embeddings',
+    ssh_conn_id='ssh_worker',
+    command='/home/na/embeddings.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+    cmd_timeout=300,
+    get_pty=True)
+  
+  casts >> embeddings
