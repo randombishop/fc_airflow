@@ -27,9 +27,9 @@ with DAG(
 ) as dag:
 
     check = SQLCheckOperator(
-        task_id='check',
-        conn_id='pg_replicator',
-		sql='sql/check_casts.sql')
+      task_id='check',
+      conn_id='pg_replicator',
+      sql='sql/check_casts.sql')
     
     check
 
