@@ -71,7 +71,6 @@ def exec_notebook(
 
 def exec_dune_query(query_id, params):
   query = QueryBase(query_id=query_id,params=params)
-  logging.info("Results available at", query.url())
   dune = DuneClient.from_env()
   df = dune.run_query_dataframe(query)
   return df

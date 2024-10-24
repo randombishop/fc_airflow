@@ -4,11 +4,13 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from dune_client.types import QueryParameter
 from utils import exec_dune_query, dataframe_to_gcs
+import logging
 
 
 def pull_casts(**context):
   ts_from = context['logical_date'].strftime('%Y-%m-%d %H:%M:%S')
   ts_to = (context['logical_date'] + datetime.timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
+  logging.info(f"Pulling casts from {ts_from} to {ts_to}")
   params = [
     QueryParameter.text_type(name="ts_from", value=ts_from),
     QueryParameter.text_type(name="ts_to", value=ts_to)
