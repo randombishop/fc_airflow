@@ -3,10 +3,12 @@ import logging
 import os
 import time
 import tempfile
+import io
 from google.cloud import notebooks_v1
 from google import auth
 from dune_client.client import DuneClient
 from dune_client.query import QueryBase
+from dune_client.api.table import TableAPI
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 
 
@@ -88,4 +90,18 @@ def dataframe_to_gcs(df, destination, bucket_name = 'dsart_nearline1'):
       object_name=destination,
       filename=temp_csv_path
     )
-    print(f"File {temp_csv_path} uploaded to GCS at {destination}")
+    logging.info(f"File {temp_csv_path} uploaded to GCS at {destination}")
+
+
+def dataframe_to_dune(df, namespace, table_name):
+  logging.info('dataframe_to_dune')
+  buffer = io.BytesIO()
+  df.to_csv(buffer, index=False)
+  dune = TableAPI(api_key=os.environ['DUNE_API_KEY'])
+  response = dune.insert_table(
+    namespace=namespace,
+    table_name=table_name,
+    data=buffer,
+    content_type='text/csv'
+  )
+  logging.info('Response', response)
