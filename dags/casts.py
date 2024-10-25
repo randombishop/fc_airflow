@@ -38,7 +38,7 @@ def push_casts(**context):
   df = pandas.read_csv(local_file)
   logging.info(f"Dataframe fetched from GCS: {len(df)}")
   logging.info(f"Dataframe columns: {list(df.columns)}")
-  dataframe_to_dune(local_file, 'dsart', 'casts_features')
+  dataframe_to_dune(df, 'dsart', 'casts_features')
   if os.path.exists(local_file):
     os.remove(local_file)
   logging.info(f"Removed local file")
