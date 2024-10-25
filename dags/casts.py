@@ -37,6 +37,7 @@ def push_casts(**context):
   gcs_hook.download(bucket_name=bucket_name, object_name=remote_file, filename=local_file)
   df = pandas.read_csv(local_file)
   logging.info(f"Dataframe fetched from GCS: {len(df)}")
+  logging.info(f"Dataframe columns: {list(df.columns)}")
   dataframe_to_dune(df, 'dsart', 'casts_features')
   if os.path.exists(local_file):
     os.remove(local_file)
