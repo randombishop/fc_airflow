@@ -107,4 +107,4 @@ def dataframe_to_dune(df, namespace, table_name):
     data=buffer.getvalue(),
     content_type=content_type
   )
-  logging.info('Dune response', response)
+  logging.info(f"Dune response: {response}")
