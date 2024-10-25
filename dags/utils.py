@@ -3,7 +3,7 @@ import logging
 import os
 import time
 import tempfile
-import io
+import requests
 from google.cloud import notebooks_v1
 from google import auth
 from dune_client.client import DuneClient
@@ -93,15 +93,17 @@ def dataframe_to_gcs(df, destination, bucket_name = 'dsart_nearline1'):
     logging.info(f"File {temp_csv_path} uploaded to GCS at {destination}")
 
 
-def dataframe_to_dune(df, namespace, table_name):
-  logging.info('dataframe_to_dune')
-  buffer = io.BytesIO()
-  df.to_csv(buffer, index=False)
-  dune = TableAPI(api_key=os.environ['DUNE_API_KEY'])
-  response = dune.insert_table(
-    namespace=namespace,
-    table_name=table_name,
-    data=buffer,
-    content_type='text/csv'
-  )
-  logging.info('Response', response)
+def dataframe_to_dune(file_path, namespace, table_name):
+  url = f"https://api.dune.com/api/v1/table/{namespace}/{table_name}/insert"
+  headers = {
+    'X-DUNE-API-KEY': os.environ['DUNE_API_KEY'],
+    'Content-Type': 'text/csv',
+  }
+  with open(file_path, 'rb') as file:
+    response = requests.post(url, headers=headers, files={'file': file})
+  if response.status_code == 200:
+    logging.info("File uploaded successfully!")
+  else:
+    logging.error(f"Failed to upload file. Status code: {response.status_code}")
+    logging.error(f"Response: {response.text}")
+    raise Exception(f"Failed to upload CSV to Dune")
