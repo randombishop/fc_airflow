@@ -73,6 +73,7 @@ def exec_dune_query(query_id, params):
   query = QueryBase(query_id=query_id,params=params)
   dune = DuneClient.from_env()
   df = dune.run_query_dataframe(query)
+  df.replace('<nil>', None, inplace=True)
   return df
 
 
