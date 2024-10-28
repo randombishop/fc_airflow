@@ -12,8 +12,8 @@ import logging
 
 
 def pull_casts(**context):
-  ts_from = context['logical_date'].strftime('%Y-%m-%d %H:%M:%S')
-  ts_to = (context['logical_date'] + datetime.timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
+  ts_from = context['logical_date'].strftime('%Y-%m-%d %H')+':00:00'
+  ts_to = (context['logical_date'] + datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H')+':00:00'
   logging.info(f"Pulling casts from {ts_from} to {ts_to}")
   params = [
     QueryParameter.text_type(name="ts_from", value=ts_from),
@@ -53,10 +53,10 @@ default_args = {
 
 
 with DAG(
-  'casts',
+  'casts_features',
   default_args=default_args,
   description='Process casts hourly',
-  schedule_interval='0 * * * *',
+  schedule_interval='45 */2 * * *',
   max_active_runs=1,
   catchup=False,
   dagrun_timeout=datetime.timedelta(hours=1)
@@ -86,14 +86,14 @@ with DAG(
     task_id='join',
     ssh_conn_id='ssh_worker',
     command='/home/na/join1.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=60,
+    cmd_timeout=120,
     get_pty=True)
   
   bird = SSHOperator(
     task_id='bird',
     ssh_conn_id='ssh_worker',
     command='/home/na/bird2.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=60,
+    cmd_timeout=120,
     get_pty=True)
   
   push = PythonOperator(
