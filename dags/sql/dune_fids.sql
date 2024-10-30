@@ -93,6 +93,19 @@ WHERE timestamp>date_add('day', -30, current_date)
 and timestamp<current_date
 GROUP BY target_fid),
 
+t_replies AS (
+SELECT
+parent_fid replies_fid,
+COUNT(*) replies_num,
+COUNT(CASE WHEN deleted_at is not null THEN 1 END) replies_del,
+COUNT(DISTINCT fid) replies_ufid
+FROM dune.neynar.dataset_farcaster_casts
+WHERE timestamp>date_add('day', -30, current_date)
+AND timestamp<current_date
+AND parent_fid is not NULL
+GROUP BY parent_fid
+),
+
 LanguageCounts AS (
   SELECT
       fid,
@@ -287,6 +300,7 @@ t_casts_30d.*,
 t_channels.*,
 t_react_out.*,
 t_react_in.*,
+t_replies.*,
 t_prefs.*,
 t_lang.*,
 t_keywords.*
@@ -296,6 +310,7 @@ LEFT JOIN t_casts_30d ON t_casts_30d.casts_30d_fid=t_users.fid
 LEFT JOIN t_channels ON t_channels.channels_fid=t_users.fid
 LEFT JOIN t_react_out ON t_react_out.react_out_fid=t_users.fid
 LEFT JOIN t_react_in ON t_react_in.react_in_fid=t_users.fid
+LEFT JOIN t_replies ON t_replies.replies_fid=t_users.fid
 LEFT JOIN t_prefs ON t_prefs.prefs_fid=t_users.fid
 LEFT JOIN t_lang ON t_lang.lang_fid=t_users.fid
 LEFT JOIN t_keywords ON t_keywords.keywords_fid=t_users.fid
