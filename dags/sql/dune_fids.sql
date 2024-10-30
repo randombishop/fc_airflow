@@ -127,7 +127,85 @@ FROM
     RankedLanguages
 GROUP BY
     fid
+),
+
+text1 AS (
+    SELECT
+        fid,
+        LOWER(regexp_replace(text, 'https?://[^\s]+', '')) AS text_without_urls
+    FROM dune.dsart.casts_features
+        WHERE 
+        timestamp>date_add('day', -30, current_date)
+        and timestamp<current_date
+        and text is not NULL
+        and language is not NULL
+),
+
+text2 AS (
+    SELECT
+        fid,
+        LOWER(regexp_replace(normalize(text_without_urls, NFD), '[^\p{L} ]', '')) AS cleaned_text
+    FROM
+        text1
+),
+
+tokenized AS (
+    SELECT
+        fid,
+        keyword
+    FROM
+        text2, UNNEST(split(cleaned_text, ' ')) AS c(keyword)
+    WHERE
+        LENGTH(keyword) > 3
+),
+
+filtered_keywords AS (
+    SELECT
+        t.fid,
+        t.keyword
+    FROM
+        tokenized t
+    LEFT JOIN
+        dune.dsart.dataset_ignore_keywords k ON t.keyword = k.word
+    WHERE
+        k.word IS NULL
+),
+
+keyword_counts AS (
+    SELECT
+        fid,
+        keyword,
+        COUNT(*) AS count
+    FROM
+        filtered_keywords
+    GROUP BY
+        fid,
+        keyword
+),
+
+ranked_keywords AS (
+    SELECT
+        fid,
+        keyword,
+        count,
+        ROW_NUMBER() OVER (PARTITION BY fid ORDER BY count DESC) AS rank
+    FROM
+        keyword_counts
+),
+
+t_keywords AS (
+SELECT
+    fid keywords_fid,
+    map_agg(keyword, count) AS keywords
+FROM
+    ranked_keywords
+WHERE
+    rank <= 25
+GROUP BY
+    fid
 )
+
+
 
 SELECT 
 t_users.*, 
@@ -136,7 +214,8 @@ t_casts_30d.*,
 t_channels.*,
 t_react_out.*,
 t_react_in.*,
-t_lang.*
+t_lang.*,
+t_keywords.*
 FROM t_users 
 LEFT JOIN t_casts_all ON t_casts_all.casts_all_fid=t_users.fid
 LEFT JOIN t_casts_30d ON t_casts_30d.casts_30d_fid=t_users.fid
@@ -144,6 +223,7 @@ LEFT JOIN t_channels ON t_channels.channels_fid=t_users.fid
 LEFT JOIN t_react_out ON t_react_out.react_out_fid=t_users.fid
 LEFT JOIN t_react_in ON t_react_in.react_in_fid=t_users.fid
 LEFT JOIN t_lang ON t_lang.lang_fid=t_users.fid
+LEFT JOIN t_keywords ON t_keywords.keywords_fid=t_users.fid
 ORDER BY fid
 LIMIT 10 ;
 
