@@ -314,6 +314,7 @@ LEFT JOIN t_replies ON t_replies.replies_fid=t_users.fid
 LEFT JOIN t_prefs ON t_prefs.prefs_fid=t_users.fid
 LEFT JOIN t_lang ON t_lang.lang_fid=t_users.fid
 LEFT JOIN t_keywords ON t_keywords.keywords_fid=t_users.fid
-ORDER BY fid
-LIMIT 10 ;
+ORDER BY fid ;
+
+
 
