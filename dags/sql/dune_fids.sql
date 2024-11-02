@@ -297,8 +297,11 @@ SELECT
 t_users.*, 
 t_casts_all.*, 
 t_casts_30d.*,
+casts_30d_num/casts_30d_active_days as casts_30d_daily,
+casts_30d_del/casts_30d_num as casts_30d_del_ratio,
 t_channels.*,
 t_react_out.*,
+react_out_del/react_out_num as react_out_del_ratio,
 t_react_in.*,
 t_replies.*,
 t_prefs.*,
@@ -315,6 +318,4 @@ LEFT JOIN t_prefs ON t_prefs.prefs_fid=t_users.fid
 LEFT JOIN t_lang ON t_lang.lang_fid=t_users.fid
 LEFT JOIN t_keywords ON t_keywords.keywords_fid=t_users.fid
 ORDER BY fid ;
-
-
 
