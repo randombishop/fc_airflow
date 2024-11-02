@@ -287,6 +287,48 @@ FROM
     prefs_rows
 GROUP BY
     fid
+),
+
+ReplyTimes as (
+SELECT
+t1.fid,
+LEAST(date_diff('second', t2.timestamp, t1.timestamp), 864000.0)/3600.0 delta
+FROM dune.neynar.dataset_farcaster_casts t1
+INNER JOIN dune.neynar.dataset_farcaster_casts t2 
+ON t1.parent_hash=t2.hash
+WHERE t1.timestamp>date_add('day', -30, current_date)
+AND t1.timestamp<current_date
+AND t1.parent_hash is not NULL
+AND t1.deleted_at is NULL
+),
+
+t_time_reply AS (
+SELECT 
+fid time_reply_fid, 
+AVG(delta) time_reply
+FROM ReplyTimes
+GROUP BY fid
+),
+
+ReactTimes as (
+SELECT
+t1.fid,
+LEAST(date_diff('second', t2.timestamp, t1.timestamp), 864000.0)/3600.0 delta
+FROM dune.neynar.dataset_farcaster_reactions t1
+INNER JOIN dune.neynar.dataset_farcaster_casts t2 
+ON t1.target_hash=t2.hash
+WHERE t1.timestamp>date_add('day', -30, current_date)
+AND t1.timestamp<current_date
+AND t1.target_hash is not NULL
+AND t1.deleted_at is NULL
+),
+
+t_time_react AS (
+SELECT 
+fid time_react_fid, 
+AVG(delta) time_react
+FROM ReactTimes
+GROUP BY fid
 )
 
 
@@ -294,19 +336,39 @@ GROUP BY
 
 
 SELECT 
+
 t_users.*, 
+
 t_casts_all.*, 
+
 t_casts_30d.*,
-casts_30d_num/casts_30d_active_days as casts_30d_daily,
-casts_30d_del/casts_30d_num as casts_30d_del_ratio,
-t_channels.*,
+CAST(casts_30d_del as REAL)/casts_30d_num as casts_30d_del_ratio,
+
+t_channels.channels,
+
 t_react_out.*,
-react_out_del/react_out_num as react_out_del_ratio,
+CAST(react_out_del as REAL)/react_out_num as react_out_del_ratio,
+
 t_react_in.*,
+
 t_replies.*,
 t_prefs.*,
-t_lang.*,
-t_keywords.*
+
+t_lang.lang_1, 
+t_lang.lang_2,
+
+t_keywords.keywords,
+
+t_time_reply.time_reply,
+t_time_react.time_react,
+COALESCE((time_reply+time_react)/2, COALESCE(time_reply, time_react)) as spam_time,
+CAST(casts_30d_num as REAL)/casts_30d_active_days as spam_daily_casts,
+COALESCE(
+  ((CAST(casts_30d_del as REAL)/casts_30d_num)+(CAST(react_out_del as REAL)/react_out_num))/2, 
+  COALESCE(CAST(casts_30d_del as REAL)/casts_30d_num, CAST(react_out_del as REAL)/react_out_num)
+) as spam_delete_ratio
+
+
 FROM t_users 
 LEFT JOIN t_casts_all ON t_casts_all.casts_all_fid=t_users.fid
 LEFT JOIN t_casts_30d ON t_casts_30d.casts_30d_fid=t_users.fid
@@ -317,5 +379,6 @@ LEFT JOIN t_replies ON t_replies.replies_fid=t_users.fid
 LEFT JOIN t_prefs ON t_prefs.prefs_fid=t_users.fid
 LEFT JOIN t_lang ON t_lang.lang_fid=t_users.fid
 LEFT JOIN t_keywords ON t_keywords.keywords_fid=t_users.fid
+LEFT JOIN t_time_reply ON t_time_reply.time_reply_fid=t_users.fid
+LEFT JOIN t_time_react ON t_time_react.time_react_fid=t_users.fid
 ORDER BY fid ;
-
