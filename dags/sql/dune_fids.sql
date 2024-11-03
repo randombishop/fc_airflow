@@ -305,7 +305,7 @@ AND t1.deleted_at is NULL
 t_time_reply AS (
 SELECT 
 fid time_reply_fid, 
-AVG(delta) time_reply
+CAST(AVG(delta) AS REAL) time_reply
 FROM ReplyTimes
 GROUP BY fid
 ),
@@ -326,49 +326,35 @@ AND t1.deleted_at is NULL
 t_time_react AS (
 SELECT 
 fid time_react_fid, 
-AVG(delta) time_react
+CAST(AVG(delta) AS REAL) time_react
 FROM ReactTimes
 GROUP BY fid
-)
+),
 
-
-
-
-
+t_features AS (
 SELECT 
-
 t_users.*, 
-
+COALESCE((casts_30d_num>0 or react_out_num>0), FALSE) is_active,
 t_casts_all.*, 
-
 t_casts_30d.*,
 CAST(casts_30d_del as REAL)/casts_30d_num as casts_30d_del_ratio,
-
 t_channels.channels,
-
 t_react_out.*,
 CAST(react_out_del as REAL)/react_out_num as react_out_del_ratio,
-
 t_react_in.*,
-
 t_replies.*,
 t_prefs.*,
-
 t_lang.lang_1, 
 t_lang.lang_2,
-
 t_keywords.keywords,
-
 t_time_reply.time_reply,
 t_time_react.time_react,
-COALESCE((time_reply+time_react)/2, COALESCE(time_reply, time_react)) as spam_time,
+COALESCE((time_reply+time_react)/2.0, COALESCE(time_reply, time_react)) as spam_time,
 CAST(casts_30d_num as REAL)/casts_30d_active_days as spam_daily_casts,
 COALESCE(
-  ((CAST(casts_30d_del as REAL)/casts_30d_num)+(CAST(react_out_del as REAL)/react_out_num))/2, 
+  ((CAST(casts_30d_del as REAL)/casts_30d_num)+(CAST(react_out_del as REAL)/react_out_num))/2.0, 
   COALESCE(CAST(casts_30d_del as REAL)/casts_30d_num, CAST(react_out_del as REAL)/react_out_num)
 ) as spam_delete_ratio
-
-
 FROM t_users 
 LEFT JOIN t_casts_all ON t_casts_all.casts_all_fid=t_users.fid
 LEFT JOIN t_casts_30d ON t_casts_30d.casts_30d_fid=t_users.fid
@@ -380,5 +366,35 @@ LEFT JOIN t_prefs ON t_prefs.prefs_fid=t_users.fid
 LEFT JOIN t_lang ON t_lang.lang_fid=t_users.fid
 LEFT JOIN t_keywords ON t_keywords.keywords_fid=t_users.fid
 LEFT JOIN t_time_reply ON t_time_reply.time_reply_fid=t_users.fid
-LEFT JOIN t_time_react ON t_time_react.time_react_fid=t_users.fid
-ORDER BY fid ;
+LEFT JOIN t_time_react ON t_time_react.time_react_fid=t_users.fid 
+),
+
+t_stats AS (
+SELECT 
+approx_percentile(spam_time, 0.05) AS spam_time_05,
+approx_percentile(spam_daily_casts, 0.95) AS spam_daily_casts_95,
+approx_percentile(spam_delete_ratio, 0.95) AS spam_delete_ratio_95
+FROM t_features
+WHERE is_active=TRUE
+),
+
+t_spam_flags AS (
+SELECT 
+fid,
+(spam_time<(SELECT spam_time_05 FROM t_stats)) spam_time_flag,
+(spam_daily_casts>(SELECT spam_daily_casts_95 FROM t_stats)) spam_daily_casts_flag,
+(spam_delete_ratio>(SELECT spam_delete_ratio_95 FROM t_stats)) spam_delete_ratio_flag
+FROM t_features
+)
+
+
+
+SELECT
+t_features.*,
+spam_time_flag,
+spam_daily_casts_flag,
+spam_delete_ratio_flag,
+(spam_time_flag=TRUE or spam_daily_casts_flag=TRUE or spam_delete_ratio_flag=TRUE) spam_any_flag
+FROM t_features
+LEFT JOIN t_spam_flags ON t_spam_flags.fid=t_features.fid
+ORDER BY fid
