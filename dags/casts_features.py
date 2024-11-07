@@ -60,15 +60,16 @@ def update_channel_counts(**context):
   pg_hook = PostgresHook(postgres_conn_id='pg_dsart')
   engine = pg_hook.get_sqlalchemy_engine()
   with engine.connect() as connection:
-    df.to_sql('ds.tmp_channel_activity', connection, if_exists='replace', index=False)
+    df.to_sql('tmp_channel_activity', connection, if_exists='replace', index=False)
+    logging.info(f"Uploaded to temp table tmp_channel_activity")
     sql1 = """UPDATE ds.channels_digest AS t
              SET num_casts = t.num_casts + s.num_casts
-             FROM ds.tmp_channel_activity s
+             FROM tmp_channel_activity s
              WHERE t.url = s.channel ;"""
     connection.execute(sql1)
     logging.info(f"Executed SQL: {sql1}")
     sql2 = """INSERT INTO ds.channels_digest (url, num_casts) (
-            SELECT channel as url, num_casts FROM ds.tmp_channel_activity
+            SELECT channel as url, num_casts FROM tmp_channel_activity
             WHERE channel not in (select url from ds.channels_digest)
           ) ;""" 
     connection.execute(sql2)
