@@ -74,9 +74,9 @@ def update_channel_counts(**context):
           ) ;""" 
     connection.execute(sql2)
     logging.info(f"Executed SQL: {sql2}")
-    #sql_drop = "DROP TABLE ds.tmp_channel_activity ;"
-    #connection.execute(sql_drop)
-    #logging.info(f"Dropped temp table ds.tmp_channel_activity")
+    sql_drop = "DROP TABLE tmp_channel_activity ;"
+    connection.execute(sql_drop)
+    logging.info(f"Dropped temp table tmp_channel_activity")
   logging.info(f"Done")
   
 
