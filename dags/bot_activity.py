@@ -22,12 +22,6 @@ with DAG(
     dagrun_timeout=datetime.timedelta(hours=3)
 ) as dag:
 
-    update1 = PostgresOperator(
-		task_id='update1',
-		postgres_conn_id='pg_replicator',
-		sql='sql/update_channels_digest.sql')
-    update1
-    
     publish1 = SSHOperator(
         task_id='publish1',
         ssh_conn_id='ssh_worker',
@@ -36,6 +30,6 @@ with DAG(
         get_pty=True)
     publish1
     
-    update1 >> publish1
+    publish1
 
     
