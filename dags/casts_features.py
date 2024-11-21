@@ -130,7 +130,7 @@ with DAG(
     task_id='bird',
     ssh_conn_id='ssh_worker',
     command='/home/na/bird2.sh "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=300,
+    cmd_timeout=900,
     get_pty=True)
   
   push = PythonOperator(
