@@ -25,7 +25,7 @@ with DAG(
   publish1 = SSHOperator(
     task_id='publish1',
     ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh digest any   ',
+    command='/home/na/scheduled_tasks.sh    ',
     cmd_timeout=1200,
     get_pty=True)
   publish1
