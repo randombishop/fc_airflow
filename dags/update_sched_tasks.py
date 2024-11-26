@@ -55,7 +55,7 @@ default_args = {
 with DAG(
   'update_sched_tasks',
   default_args=default_args,
-  description='Process casts hourly',
+  description='Updates scheduled tasks cast counts',
   schedule_interval='55 */2 * * *',
   max_active_runs=1,
   catchup=False,

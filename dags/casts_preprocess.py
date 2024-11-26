@@ -35,7 +35,7 @@ default_args = {
 with DAG(
   'casts_preprocess',
   default_args=default_args,
-  description='Process casts hourly',
+  description='Calculates embeddings and detects language for each cast',
   schedule_interval='40 */2 * * *',
   max_active_runs=1,
   catchup=False,

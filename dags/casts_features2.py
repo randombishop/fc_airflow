@@ -39,7 +39,7 @@ default_args = {
 with DAG(
   'casts_features2',
   default_args=default_args,
-  description='Process casts hourly',
+  description='Prepare Cast Features',
   schedule_interval='50 */2 * * *',
   max_active_runs=1,
   catchup=False,
