@@ -37,6 +37,12 @@ def update_channel_counts(**context):
           ) ;""" 
     connection.execute(sql2)
     logging.info(f"Executed SQL: {sql2}")
+    sql3 = """UPDATE app.scheduled_action AS t
+             SET num_casts = t.num_casts + s.num_casts
+             FROM tmp_channel_activity s INNER JOIN ds.channels c ON s.url = c.url
+             WHERE t.count_channel = c.id ;"""
+    connection.execute(sql3)
+    logging.info(f"Executed SQL: {sql3}")
     sql_drop = "DROP TABLE tmp_channel_activity ;"
     connection.execute(sql_drop)
     logging.info(f"Dropped temp table tmp_channel_activity")
