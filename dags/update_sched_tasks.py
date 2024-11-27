@@ -8,18 +8,21 @@ from utils import exec_dune_query
 import logging
 
   
-
-def update_channel_counts(**context):
+def call_dune(query_id, context):
   ts_from = context['logical_date'].strftime('%Y-%m-%d %H')+':00:00'
   ts_to = (context['logical_date'] + datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H')+':00:00'
-  logging.info(f"Pulling channel counts from {ts_from} to {ts_to}")
+  logging.info(f"Calling Dune query {query_id} from {ts_from} to {ts_to}")
   params = [
     QueryParameter.text_type(name="ts_from", value=ts_from),
     QueryParameter.text_type(name="ts_to", value=ts_to)
   ]
-  query_id = 4259101
   df = exec_dune_query(query_id, params)
   logging.info(f"Dataframe fetched from Dune: {len(df)}")
+  return df
+
+
+def update_channel_counts(**context):
+  df = call_dune(4259101, context)
   pg_hook = PostgresHook(postgres_conn_id='pg_dsart')
   engine = pg_hook.get_sqlalchemy_engine()
   with engine.connect() as connection:
@@ -50,6 +53,25 @@ def update_channel_counts(**context):
   
 
 
+def update_category_counts(**context):
+  df = call_dune(4340722, context)
+  logging.info(df)
+  pg_hook = PostgresHook(postgres_conn_id='pg_dsart')
+  engine = pg_hook.get_sqlalchemy_engine()
+  with engine.connect() as connection:
+    df.to_sql('tmp_category_activity', connection, if_exists='replace', index=False)
+    logging.info(f"Uploaded to temp table tmp_category_activity")
+    sql1 = """UPDATE app.scheduled_action AS t
+            SET count_casts = t.count_casts + s.num_casts
+            FROM tmp_category_activity s
+            WHERE t.count_category = s.category ;"""
+    connection.execute(sql1)
+    logging.info(f"Executed SQL: {sql1}")
+    sql_drop = "DROP TABLE tmp_category_activity ;"
+    connection.execute(sql_drop)
+    logging.info(f"Dropped temp table tmp_category_activity")
+  logging.info(f"Done")
+
 
 default_args = {
   'start_date': airflow.utils.dates.days_ago(2),
@@ -74,4 +96,10 @@ with DAG(
     provide_context=True,
   )
   
-  update_channels
+  update_categories = PythonOperator(
+    task_id='update_categories',
+    python_callable=update_category_counts,
+    provide_context=True,
+  )
+  
+  update_channels >> update_categories
