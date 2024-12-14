@@ -1,10 +1,9 @@
 import datetime
-import airflow
-from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from dune_client.types import QueryParameter
-from utils import exec_dune_query, dataframe_to_gcs, dataframe_to_dune
+from airflow.utils.task_group import TaskGroup
+from utils import exec_dune_query, dataframe_to_gcs
 import logging
 
 
@@ -25,42 +24,28 @@ def pull_casts(**context):
   dataframe_to_gcs(df, destination)
 
 
-default_args = {
-  'start_date': airflow.utils.dates.days_ago(2),
-  'retries': 1,
-  'retry_delay': datetime.timedelta(hours=1)
-}
-
-
-with DAG(
-  'casts_preprocess',
-  default_args=default_args,
-  description='Calculates embeddings and detects language for each cast',
-  schedule_interval='40 */2 * * *',
-  max_active_runs=1,
-  catchup=False,
-  dagrun_timeout=datetime.timedelta(hours=1)
-) as dag:
-
-  casts = PythonOperator(
-    task_id='casts',
-    python_callable=pull_casts,
-    provide_context=True,
-  )
-  
-  embed = SSHOperator(
-    task_id='embed',
-    ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh embeddings run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=600,
-    get_pty=True)
-  
-  lang = SSHOperator(
-    task_id='lang',
-    ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh detect_lang run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=600,
-    get_pty=True)
-  
-  
-  casts >> embed >> lang
+def create_task_group(dag):
+  with TaskGroup(group_id='casts_preprocess', dag=dag) as dag:
+    casts = PythonOperator(
+      task_id='casts',
+      python_callable=pull_casts,
+      provide_context=True,
+    )
+    
+    embed = SSHOperator(
+      task_id='embed',
+      ssh_conn_id='ssh_worker',
+      command='/home/na/worker.sh embeddings run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+      cmd_timeout=600,
+      get_pty=True)
+    
+    lang = SSHOperator(
+      task_id='lang',
+      ssh_conn_id='ssh_worker',
+      command='/home/na/worker.sh detect_lang run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+      cmd_timeout=600,
+      get_pty=True)
+    
+    
+    casts >> embed >> lang
+  return dag

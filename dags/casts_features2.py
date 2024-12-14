@@ -1,8 +1,6 @@
-import datetime
-import airflow
 import pandas
 import os
-from airflow import DAG
+from airflow.utils.task_group import TaskGroup
 from airflow.operators.python import PythonOperator
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
@@ -29,48 +27,34 @@ def push_casts(**context):
   logging.info(f"Removed local file")
   
 
-default_args = {
-  'start_date': airflow.utils.dates.days_ago(2),
-  'retries': 1,
-  'retry_delay': datetime.timedelta(hours=1)
-}
-
-
-with DAG(
-  'casts_features2',
-  default_args=default_args,
-  description='Prepare Cast Features',
-  schedule_interval='50 */2 * * *',
-  max_active_runs=1,
-  catchup=False,
-  dagrun_timeout=datetime.timedelta(hours=1)
-) as dag:
-
-  gambit = SSHOperator(
-    task_id='gambit',
-    ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh gambit2 run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=120,
-    get_pty=True)
-  
-  join = SSHOperator(
-    task_id='join',
-    ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh join2 run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=120,
-    get_pty=True)
-  
-  bird = SSHOperator(
-    task_id='bird',
-    ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh bird2 run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
-    cmd_timeout=120,
-    get_pty=True)
-  
-  push = PythonOperator(
-    task_id='push',
-    python_callable=push_casts,
-    provide_context=True,
-  )
-  
-  gambit >> join >> bird >> push
+def create_task_group(dag):
+  with TaskGroup(group_id='casts_features2', dag=dag) as dag:
+    gambit = SSHOperator(
+      task_id='gambit',
+      ssh_conn_id='ssh_worker',
+      command='/home/na/worker.sh gambit2 run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+      cmd_timeout=120,
+      get_pty=True)
+    
+    join = SSHOperator(
+      task_id='join',
+      ssh_conn_id='ssh_worker',
+      command='/home/na/worker.sh join2 run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+      cmd_timeout=120,
+      get_pty=True)
+    
+    bird = SSHOperator(
+      task_id='bird',
+      ssh_conn_id='ssh_worker',
+      command='/home/na/worker.sh bird2 run "{{ execution_date.strftime("%Y-%m-%d-%H") }}"',
+      cmd_timeout=120,
+      get_pty=True)
+    
+    push = PythonOperator(
+      task_id='push',
+      python_callable=push_casts,
+      provide_context=True,
+    )
+    
+    gambit >> join >> bird >> push
+  return dag

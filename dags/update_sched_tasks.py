@@ -1,6 +1,5 @@
 import datetime
-import airflow
-from airflow import DAG
+from airflow.utils.task_group import TaskGroup
 from airflow.operators.python import PythonOperator
 from dune_client.types import QueryParameter
 from airflow.hooks.postgres_hook import PostgresHook
@@ -52,7 +51,6 @@ def update_channel_counts(**context):
   logging.info(f"Done")
   
 
-
 def update_category_counts(**context):
   df = call_dune(4340722, context)
   logging.info(df)
@@ -73,33 +71,17 @@ def update_category_counts(**context):
   logging.info(f"Done")
 
 
-default_args = {
-  'start_date': airflow.utils.dates.days_ago(2),
-  'retries': 1,
-  'retry_delay': datetime.timedelta(hours=1)
-}
-
-
-with DAG(
-  'update_sched_tasks',
-  default_args=default_args,
-  description='Updates scheduled tasks cast counts',
-  schedule_interval='55 */2 * * *',
-  max_active_runs=1,
-  catchup=False,
-  dagrun_timeout=datetime.timedelta(hours=1)
-) as dag:
-
-  update_channels = PythonOperator(
-    task_id='update_channels',
-    python_callable=update_channel_counts,
-    provide_context=True,
-  )
-  
-  update_categories = PythonOperator(
-    task_id='update_categories',
-    python_callable=update_category_counts,
-    provide_context=True,
-  )
-  
-  update_channels >> update_categories
+def create_task_group(dag):
+  with TaskGroup(group_id='update_sched_tasks', dag=dag) as dag:
+    update_channels = PythonOperator(
+      task_id='update_channels',
+      python_callable=update_channel_counts,
+      provide_context=True,
+    )
+    update_categories = PythonOperator(
+      task_id='update_categories',
+      python_callable=update_category_counts,
+      provide_context=True,
+    )
+    update_channels >> update_categories
+  return dag
