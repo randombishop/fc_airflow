@@ -14,7 +14,7 @@ default_args = {
 }
 
 with DAG(
-  'casts',
+  'dune_pipeline',
   default_args=default_args,
   description='Casts processing pipeline',
   schedule_interval='45 */2 * * *',
