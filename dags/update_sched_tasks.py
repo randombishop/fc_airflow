@@ -71,6 +71,45 @@ def update_category_counts(**context):
   logging.info(f"Done")
 
 
+def call_bot_engagement(context):
+  query_id = 4562497
+  ts_from = (context['logical_date'] - datetime.timedelta(hours=74)).strftime('%Y-%m-%d %H')+':00:00'
+  ts_to = (context['logical_date'] - datetime.timedelta(hours=72)).strftime('%Y-%m-%d %H')+':00:00'
+  ts_limit = context['logical_date'].strftime('%Y-%m-%d %H')+':00:00'
+  fid = 788096
+  logging.info(f"Calling Dune query {query_id} ts_from={ts_from} ts_to={ts_to} ts_limit={ts_limit} fid={fid}")
+  params = [
+    QueryParameter.text_type(name="ts_from", value=ts_from),
+    QueryParameter.text_type(name="ts_to", value=ts_to),
+    QueryParameter.text_type(name="ts_limit", value=ts_limit),
+    QueryParameter.number_type(name="fid", value=fid)
+  ]
+  df = exec_dune_query(query_id, params)
+  logging.info(f"Dataframe fetched from Dune: {len(df)}")
+  return df
+
+
+def update_bot_engagement(**context):
+  df = call_bot_engagement(context)
+  if df is None or len(df) == 0:
+    logging.info(f"No bot engagement data fetched")
+    return
+  logging.info(df.head())
+  pg_hook = PostgresHook(postgres_conn_id='pg_dsart')
+  engine = pg_hook.get_sqlalchemy_engine()
+  with engine.connect() as connection:
+    df.to_sql('tmp_bot_engagement', connection, if_exists='replace', index=False)
+    logging.info(f"Uploaded to temp table tmp_bot_engagement")
+    #sql1 = """ """
+    #connection.execute(sql1)
+    #logging.info(f"Executed SQL: {sql1}")
+    #sql_drop = "DROP TABLE tmp_bot_engagement ;"
+    #connection.execute(sql_drop)
+    #logging.info(f"Dropped temp table tmp_bot_engagement")
+  logging.info(f"Done")
+
+
+
 def create_task_group(dag):
   with TaskGroup(group_id='update_sched_tasks', dag=dag) as dag:
     update_channels = PythonOperator(
@@ -83,5 +122,10 @@ def create_task_group(dag):
       python_callable=update_category_counts,
       provide_context=True,
     )
-    update_channels >> update_categories
+    update_bot_engagement = PythonOperator(
+      task_id='update_boteng',
+      python_callable=update_bot_engagement,
+      provide_context=True,
+    )
+    update_channels >> update_categories >> update_bot_engagement
   return dag
