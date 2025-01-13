@@ -122,10 +122,10 @@ def create_task_group(dag):
       python_callable=update_category_counts,
       provide_context=True,
     )
-    update_bot_engagement = PythonOperator(
+    update_boteng = PythonOperator(
       task_id='update_boteng',
       python_callable=update_bot_engagement,
       provide_context=True,
     )
-    update_channels >> update_categories >> update_bot_engagement
+    update_channels >> update_categories >> update_boteng
   return dag
