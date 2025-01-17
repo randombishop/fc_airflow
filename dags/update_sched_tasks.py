@@ -105,7 +105,7 @@ def update_bot_engagement(**context):
                 num_likes = s.num_likes,
                 num_recasts = s.num_recasts
             FROM tmp_bot_engagement s
-            WHERE t.hash = s.hash ;"""
+            WHERE t.cast_hash = s.hash ;"""
     connection.execute(sql1)
     logging.info(f"Executed SQL: {sql1}")
     #sql_drop = "DROP TABLE tmp_bot_engagement ;"
