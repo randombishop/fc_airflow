@@ -108,9 +108,9 @@ def update_bot_engagement(**context):
             WHERE t.cast_hash = s.hash ;"""
     connection.execute(sql1)
     logging.info(f"Executed SQL: {sql1}")
-    #sql_drop = "DROP TABLE tmp_bot_engagement ;"
-    #connection.execute(sql_drop)
-    #logging.info(f"Dropped temp table tmp_bot_engagement")
+    sql_drop = "DROP TABLE tmp_bot_engagement ;"
+    connection.execute(sql_drop)
+    logging.info(f"Dropped temp table tmp_bot_engagement")
   logging.info(f"Done")
 
 
