@@ -100,9 +100,14 @@ def update_bot_engagement(**context):
   with engine.connect() as connection:
     df.to_sql('tmp_bot_engagement', connection, if_exists='replace', index=False)
     logging.info(f"Uploaded to temp table tmp_bot_engagement")
-    #sql1 = """ """
-    #connection.execute(sql1)
-    #logging.info(f"Executed SQL: {sql1}")
+    sql1 = """UPDATE app.scheduled_cast AS t
+            SET num_replies = s.num_replies,
+                num_likes = s.num_likes,
+                num_recasts = s.num_recasts
+            FROM tmp_bot_engagement s
+            WHERE t.hash = s.hash ;"""
+    connection.execute(sql1)
+    logging.info(f"Executed SQL: {sql1}")
     #sql_drop = "DROP TABLE tmp_bot_engagement ;"
     #connection.execute(sql_drop)
     #logging.info(f"Dropped temp table tmp_bot_engagement")
