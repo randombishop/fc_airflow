@@ -100,7 +100,7 @@ def update_bot_engagement(**context):
   with engine.connect() as connection:
     df.to_sql('tmp_bot_engagement', connection, if_exists='replace', index=False)
     logging.info(f"Uploaded to temp table tmp_bot_engagement")
-    sql1 = """UPDATE app.scheduled_cast AS t
+    sql1 = """UPDATE app.bot_cast AS t
             SET num_replies = s.num_replies,
                 num_likes = s.num_likes,
                 num_recasts = s.num_recasts
