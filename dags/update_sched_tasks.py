@@ -27,18 +27,12 @@ def update_channel_counts(**context):
   with engine.connect() as connection:
     df.to_sql('tmp_channel_activity', connection, if_exists='replace', index=False)
     logging.info(f"Uploaded to temp table tmp_channel_activity")
-    sql1 = """UPDATE ds.channels_digest AS t
-             SET num_casts = t.num_casts + s.num_casts
-             FROM tmp_channel_activity s
-             WHERE t.url = s.channel ;"""
-    connection.execute(sql1)
-    logging.info(f"Executed SQL: {sql1}")
-    sql2 = """UPDATE app.scheduled_action AS t
+    sql1 = """UPDATE app.scheduled_action AS t
             SET count_casts = t.count_casts + s.num_casts
             FROM tmp_channel_activity s INNER JOIN ds.channels c ON s.channel = c.url
             WHERE t.count_channel = c.id ;"""
-    connection.execute(sql2)
-    logging.info(f"Executed SQL: {sql2}")
+    connection.execute(sql1)
+    logging.info(f"Executed SQL: {sql1}")
     sql_drop = "DROP TABLE tmp_channel_activity ;"
     connection.execute(sql_drop)
     logging.info(f"Dropped temp table tmp_channel_activity")
