@@ -33,18 +33,12 @@ def update_channel_counts(**context):
              WHERE t.url = s.channel ;"""
     connection.execute(sql1)
     logging.info(f"Executed SQL: {sql1}")
-    sql2 = """INSERT INTO ds.channels_digest (url, num_casts) (
-            SELECT channel as url, num_casts FROM tmp_channel_activity
-            WHERE channel not in (select url from ds.channels_digest)
-          ) ;""" 
-    connection.execute(sql2)
-    logging.info(f"Executed SQL: {sql2}")
-    sql3 = """UPDATE app.scheduled_action AS t
+    sql2 = """UPDATE app.scheduled_action AS t
             SET count_casts = t.count_casts + s.num_casts
             FROM tmp_channel_activity s INNER JOIN ds.channels c ON s.channel = c.url
             WHERE t.count_channel = c.id ;"""
-    connection.execute(sql3)
-    logging.info(f"Executed SQL: {sql3}")
+    connection.execute(sql2)
+    logging.info(f"Executed SQL: {sql2}")
     sql_drop = "DROP TABLE tmp_channel_activity ;"
     connection.execute(sql_drop)
     logging.info(f"Dropped temp table tmp_channel_activity")
