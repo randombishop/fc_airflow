@@ -1,8 +1,9 @@
 import datetime
 import airflow
+import pandas as pd
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.operators.postgres_operator import PostgresOperator
+from airflow.hooks.postgres_hook import PostgresHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from utils import pull_trending_casts
 
@@ -16,8 +17,18 @@ default_args = {
 
 def insert_trending_casts(**context):
   casts = pull_trending_casts()
-  for c in casts:
-    print(c)
+  df = pd.DataFrame(casts)
+  print(df)
+  pg_hook = PostgresHook(postgres_conn_id='pg_dsart')
+  engine = pg_hook.get_sqlalchemy_engine()
+  df.to_sql(
+    'trending_casts',
+    engine,
+    schema='ds',
+    if_exists='append',
+    index=False
+  )
+  print("Casts inserted into trending_casts table.")
 
 
 with DAG(
