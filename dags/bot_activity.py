@@ -16,7 +16,8 @@ default_args = {
 
 def insert_trending_casts(**context):
   casts = pull_trending_casts()
-  print(casts)
+  for c in casts:
+    print(c)
 
 
 with DAG(

@@ -118,4 +118,38 @@ def pull_trending_casts():
       "x-api-key": os.environ['NEYNAR_API_KEY']
   }
   response = requests.get(url, headers=headers).json()
-  return response
+  casts = [parse_cast(data) for data in response['casts']]
+  return casts
+
+
+def parse_cast(data):
+  cast = {}
+  cast['timestamp'] = data['timestamp']
+  cast['hash'] = data['hash']
+  cast['fid'] = data['author']['fid']
+  cast['username'] = data['author']['username']
+  cast['text'] = data['text']
+  cast['parent_hash'] = data['parent_hash']
+  cast['parent_url'] = data['parent_url']
+  cast['root_parent_url'] = data['root_parent_url']
+  has_address = 'profile' in data['author'] and 'location' in data['author']['profile'] and 'address' in data['author']['profile']['location']
+  address = data['author']['profile']['location']['address'] if has_address else None
+  if address is not None:
+    cast['profile_country'] = address['country_code']
+  cast['follower_count'] = data['author']['follower_count']
+  cast['following_count'] = data['author']['following_count']
+  if 'embeds' in data and len(data['embeds']) > 0:
+    first_embed = data['embeds'][0]
+    if 'url' in first_embed:
+      cast['embed_url'] = first_embed['url']
+    elif 'cast' in first_embed:
+      cast['embed_hash'] = first_embed['cast']['hash']
+      cast['embed_fid'] = first_embed['cast']['author']['fid']
+      cast['embed_username'] = first_embed['cast']['author']['username']
+      cast['embed_text'] = first_embed['cast']['text']
+  if 'reactions' in data:
+    cast['likes_count'] = data['reactions']['likes_count']
+    cast['recasts_count'] = data['reactions']['recasts_count']
+  if 'replies' in data:
+    cast['replies_count'] = data['replies']['count']
+  return cast
