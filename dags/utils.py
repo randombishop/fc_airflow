@@ -4,6 +4,7 @@ import os
 import time
 import tempfile
 import io
+import requests
 from google.cloud import notebooks_v1
 from google import auth
 from dune_client.client import DuneClient
@@ -108,3 +109,13 @@ def dataframe_to_dune(df, namespace, table_name):
     content_type=content_type
   )
   logging.info(f"Dune response: {response}")
+
+
+def pull_trending_casts():
+  url = "https://api.neynar.com/v2/farcaster/feed/trending?limit=10&time_window=1h&provider=neynar"
+  headers = {
+      "accept": "application/json",
+      "x-api-key": os.environ['NEYNAR_API_KEY']
+  }
+  response = requests.get(url, headers=headers).json()
+  return response
