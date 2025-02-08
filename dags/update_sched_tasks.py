@@ -33,6 +33,11 @@ def update_channel_counts(**context):
             WHERE t.count_channel = c.id ;"""
     connection.execute(sql1)
     logging.info(f"Executed SQL: {sql1}")
+    sql2 = """INSERT INTO ds.channel_counts(channel, counted_at, num_casts) 
+            SELECT c.id, now(), s.num_casts FROM tmp_channel_activity s 
+            INNER JOIN ds.channels c ON s.channel = c.url ;"""
+    connection.execute(sql2)
+    logging.info(f"Executed SQL: {sql2}")
     sql_drop = "DROP TABLE tmp_channel_activity ;"
     connection.execute(sql_drop)
     logging.info(f"Dropped temp table tmp_channel_activity")
@@ -53,6 +58,10 @@ def update_category_counts(**context):
             WHERE t.count_category = s.category ;"""
     connection.execute(sql1)
     logging.info(f"Executed SQL: {sql1}")
+    sql2 = """INSERT INTO ds.category_counts(category, counted_at, num_casts) 
+            SELECT category, now(), num_casts FROM tmp_category_activity ;"""
+    connection.execute(sql2)
+    logging.info(f"Executed SQL: {sql2}")
     sql_drop = "DROP TABLE tmp_category_activity ;"
     connection.execute(sql_drop)
     logging.info(f"Dropped temp table tmp_category_activity")
