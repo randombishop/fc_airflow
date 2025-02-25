@@ -46,14 +46,22 @@ with DAG(
     python_callable=insert_trending_casts
   )
 
-  publish1 = SSHOperator(
-    task_id='publish1',
+  publish = SSHOperator(
+    task_id='publish',
     ssh_conn_id='ssh_worker',
     command='/home/na/worker.sh autopilot run   ',
     cmd_timeout=1200,
     get_pty=True)
-  publish1
+  publish
   
-  trending >>publish1
+  profiles = SSHOperator(
+    task_id='profiles',
+    ssh_conn_id='ssh_worker',
+    command='/home/na/worker.sh bot_batch new_profiles 5   ',
+    cmd_timeout=1800,
+    get_pty=True)
+  profiles
+  
+  trending >> publish >> profiles 
 
     
