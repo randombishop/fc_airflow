@@ -19,16 +19,23 @@ def insert_trending_casts(**context):
   casts = pull_trending_casts()
   df = pd.DataFrame(casts)
   print('trending casts pulled: ', len(df))
+  if df is None or len(df)==0:
+    return
   pg_hook = PostgresHook(postgres_conn_id='pg_dsart')
   engine = pg_hook.get_sqlalchemy_engine()
-  df.to_sql(
-    'trending_casts',
-    engine,
-    schema='ds',
-    if_exists='append',
-    index=False
-  )
-  print("Casts inserted into trending_casts table.")
+  with engine.connect() as connection:
+    df.to_sql(
+      'tmp_trending_casts',
+      engine,
+      schema='public',
+      if_exists='replace',
+      index=False
+    )
+    print("Casts inserted into temporary table.")
+    sql1 = """INSERT INTO ds.trending_casts 
+              SELECT * FROM tmp_trending_casts WHERE hash NOT IN (SELECT hash FROM ds.trending_casts);"""
+    connection.execute(sql1)
+    print("Updated trending_casts table.")
 
 
 with DAG(
