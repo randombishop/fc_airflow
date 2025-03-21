@@ -112,7 +112,8 @@ def dataframe_to_dune(df, namespace, table_name):
 
 
 def pull_trending_casts():
-  url = "https://api.neynar.com/v2/farcaster/feed/trending?limit=10&time_window=1h&provider=openrank"
+  provider = 'neynar'
+  url = "https://api.neynar.com/v2/farcaster/feed/trending?limit=10&time_window=1h&provider="+provider
   headers = {
       "accept": "application/json",
       "x-api-key": os.environ['NEYNAR_API_KEY']

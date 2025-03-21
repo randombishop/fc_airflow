@@ -18,7 +18,7 @@ default_args = {
 def insert_trending_casts(**context):
   casts = pull_trending_casts()
   df = pd.DataFrame(casts)
-  print(df)
+  print('trending casts pulled: ', len(df))
   pg_hook = PostgresHook(postgres_conn_id='pg_dsart')
   engine = pg_hook.get_sqlalchemy_engine()
   df.to_sql(
