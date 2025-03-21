@@ -32,10 +32,10 @@ def insert_trending_casts(**context):
       index=False
     )
     print("Casts inserted into temporary table.")
-    sql1 = """INSERT INTO ds.trending_casts(timestamp::timestamp, hash, fid, username, text, parent_hash, 
+    sql1 = """INSERT INTO ds.trending_casts(timestamp, hash, fid, username, text, parent_hash, 
               parent_url, root_parent_url, profile_country, follower_count, following_count, likes_count, 
               recasts_count, replies_count)
-              SELECT timestamp, hash, fid, username, text, parent_hash, 
+              SELECT timestamp::timestamp, hash, fid, username, text, parent_hash, 
               parent_url, root_parent_url, profile_country, follower_count, following_count, likes_count, 
               recasts_count, replies_count FROM tmp_trending_casts WHERE hash NOT IN (SELECT hash FROM ds.trending_casts);"""
     connection.execute(sql1)
