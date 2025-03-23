@@ -119,7 +119,17 @@ def pull_trending_casts():
       "x-api-key": os.environ['NEYNAR_API_KEY']
   }
   response = requests.get(url, headers=headers).json()
-  casts = [parse_cast(data) for data in response['casts']]
+  casts = []
+  if response is None or 'casts' not in response:
+    logging.error(f"No casts found in response: {response}")
+    return casts
+  for data in response['casts']:
+    try:
+      cast = parse_cast(data)
+      casts.append(cast)
+    except Exception as e:
+      logging.error(f"Error parsing cast: {e}")
+      continue
   return casts
 
 
