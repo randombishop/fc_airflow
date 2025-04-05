@@ -112,7 +112,21 @@ def dataframe_to_dune(df, namespace, table_name):
 
 
 def pull_trending_casts():
-  provider = 'neynar'
+  print('#pull_trending_casts()')
+  providers = ['neynar', 'openrank', 'mbd']
+  casts = []
+  for provider in providers:
+    feed = pull_trending_casts_by_provider(provider)
+    print(f'##pull_trending_casts_by_provider({provider}) -> {len(feed)} casts')
+    casts += feed
+  print(f'##len(casts)={len(casts)}')
+  casts = list({cast['hash']: cast for cast in casts}.values())
+  print(f'##After removing duplicates -> len(casts)={len(casts)}')
+  print('#pull_trending_casts() done')
+  return casts
+
+
+def pull_trending_casts_by_provider(provider):
   url = "https://api.neynar.com/v2/farcaster/feed/trending?limit=10&time_window=1h&provider="+provider
   headers = {
       "accept": "application/json",
@@ -145,10 +159,14 @@ def parse_cast(data):
   cast['root_parent_url'] = data['root_parent_url']
   has_address = 'profile' in data['author'] and 'location' in data['author']['profile'] and 'address' in data['author']['profile']['location']
   address = data['author']['profile']['location']['address'] if has_address else None
-  if address is not None:
-    cast['profile_country'] = address['country_code']
+  cast['profile_country'] = address['country_code'] if address is not None else None
   cast['follower_count'] = data['author']['follower_count']
   cast['following_count'] = data['author']['following_count']
+  cast['embed_url'] = None
+  cast['embed_hash'] = None
+  cast['embed_fid'] = None
+  cast['embed_username'] = None
+  cast['embed_text'] = None
   if 'embeds' in data and len(data['embeds']) > 0:
     first_embed = data['embeds'][0]
     if 'url' in first_embed:
@@ -158,9 +176,12 @@ def parse_cast(data):
       cast['embed_fid'] = first_embed['cast']['author']['fid']
       cast['embed_username'] = first_embed['cast']['author']['username']
       cast['embed_text'] = first_embed['cast']['text']
+  cast['likes_count'] = 0
+  cast['recasts_count'] = 0
   if 'reactions' in data:
     cast['likes_count'] = data['reactions']['likes_count']
     cast['recasts_count'] = data['reactions']['recasts_count']
+  cast['replies_count'] = 0
   if 'replies' in data:
     cast['replies_count'] = data['replies']['count']
   return cast
