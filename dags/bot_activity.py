@@ -60,7 +60,7 @@ with DAG(
   publish = SSHOperator(
     task_id='publish',
     ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh autopilot run   ',
+    command='/home/na/worker.sh autopilot run_all   ',
     cmd_timeout=1200,
     get_pty=True)
   publish
