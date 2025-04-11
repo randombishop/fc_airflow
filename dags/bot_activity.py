@@ -68,7 +68,7 @@ with DAG(
   profiles = SSHOperator(
     task_id='profiles',
     ssh_conn_id='ssh_worker',
-    command='/home/na/worker.sh bot_batch new_profiles 5   ',
+    command='/home/na/worker.sh bot_batch new_profiles 788096 5   ',
     cmd_timeout=1800,
     get_pty=True)
   profiles
